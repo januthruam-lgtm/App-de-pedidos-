@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Marmitaria Pro - Sistema de Gestão & Pedidos</title>
+  
+  <link rel="manifest" href="./manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+    .glow-animation { animation: pulseGlow 2.5s infinite ease-in-out; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-rose-500 selection:text-white">
+
+  <!-- SPLASH SCREEN DE 5 SEGUNDOS -->
+  <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center p-6 transition-opacity duration-700">
+    <div class="relative flex items-center justify-center mb-6">
+      <div class="absolute w-36 h-36 bg-rose-600/30 rounded-full glow-animation blur-xl"></div>
+      <div class="relative w-24 h-24 bg-gradient-to-tr from-rose-600 to-amber-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-rose-600/40 border border-white/20">
+        <i data-lucide="utensils" class="w-12 h-12 text-white"></i>
+      </div>
+    </div>
+    <h1 class="text-2xl font-black text-white tracking-widest uppercase">Marmitaria Pro</h1>
+    <p class="text-xs text-slate-400 mt-1 font-medium">Carregando ecossistema de pedidos...</p>
+    
+    <div class="w-56 bg-slate-900 h-2 rounded-full mt-8 overflow-hidden border border-slate-800 p-0.5">
+      <div id="splashBar" class="bg-gradient-to-r from-rose-500 to-amber-400 h-full w-0 rounded-full transition-all duration-[5000ms] ease-linear"></div>
+    </div>
+    <span class="text-[10px] text-slate-600 mt-2 font-mono">Iniciando módulos seguros...</span>
+  </div>
+
+  <!-- TELA DE AUTENTICAÇÃO -->
+  <div id="authScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-y-auto hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-5">
+      
+      <div id="playStoreBanner" class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-500">
+            <i data-lucide="utensils" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-bold text-white text-sm truncate">Marmitaria Pro</h3>
+            <p class="text-[11px] text-slate-400 font-medium">Gestão & Pedidos WhatsApp</p>
+          </div>
+        </div>
+
+        <button onclick="installPWA()" class="w-full bg-[#01875f] hover:bg-[#007352] active:scale-[0.98] text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-[#01875f]/20">
+          <i data-lucide="download" class="w-4 h-4"></i> Instalar Aplicativo no Celular
+        </button>
+      </div>
+
+      <div class="text-center space-y-1">
+        <h2 id="authTitle" class="text-lg font-bold text-white">Acesso do Proprietário</h2>
+        <p id="authSubtitle" class="text-xs text-slate-400">Proteção local criptografada para suas configurações.</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Senha Mestra *</label>
+          <div class="relative">
+            <input type="password" id="loginPassword" required placeholder="Digite sua senha" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500 pl-10">
+            <i data-lucide="key-round" class="w-4 h-4 text-slate-500 absolute left-3 top-3.5"></i>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-rose-600/20">
+          <i data-lucide="unlock" class="w-4 h-4"></i> Entrar no Painel
+        </button>
+
+        <p class="text-[11px] text-center text-slate-500 pt-2 border-t border-slate-800">
+          Primeiro acesso? <button type="button" onclick="toggleAuthMode('register')" class="text-rose-400 font-bold hover:underline">Configurar Conta</button>
+        </p>
+      </form>
+
+      <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3 text-xs hidden">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">WhatsApp para Receber Pedidos (com DDD) *</label>
+          <div class="relative">
+            <input type="tel" id="regPhone" required placeholder="Ex: 5527999998888" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white pl-10 font-mono">
+            <i data-lucide="phone" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">E-mail de Contato *</label>
+          <input type="email" id="regEmail" required placeholder="contato@marmitaria.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tipo PIX</label>
+            <select id="regPixType" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+              <option value="CPF">CPF</option>
+              <option value="CNPJ">CNPJ</option>
+              <option value="E-mail">E-mail</option>
+              <option value="Telefone">Telefone</option>
+              <option value="Aleatória">Chave Aleatória</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Chave PIX *</label>
+            <input type="text" id="regPixKey" required placeholder="Sua chave" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Titular *</label>
+            <input type="text" id="regPixName" required placeholder="Nome Completo" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Cidade *</label>
+            <input type="text" id="regPixCity" required placeholder="Sua Cidade" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+          </div>
+        </div>
+
+        <div class="border-t border-slate-800 pt-2">
+          <label class="block font-semibold text-rose-400 mb-1">Senha Mestra *</label>
+          <input type="password" id="regPassword" minlength="6" required placeholder="Mínimo 6 caracteres" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4"></i> Salvar e Iniciar
+        </button>
+
+        <p class="text-[11px] text-center text-slate-500 pt-1">
+          Já possui conta? <button type="button" onclick="toggleAuthMode('login')" class="text-rose-400 font-bold hover:underline">Fazer Login</button>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- CABEÇALHO -->
+  <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <div class="bg-gradient-to-tr from-rose-600 to-amber-500 text-white p-2.5 rounded-2xl shadow-lg shadow-rose-600/20">
+          <i data-lucide="utensils" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-base text-white leading-tight">Marmitaria Pro</h1>
+          <p class="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+            <i data-lucide="message-square" class="w-3 h-3"></i> WhatsApp Conectado
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="toggleClientMode()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
+          <i data-lucide="shopping-bag" class="w-4 h-4"></i> <span class="hidden sm:inline">Modo Cliente</span>
+        </button>
+
+        <button onclick="installPWA()" class="bg-[#01875f] hover:bg-[#007352] text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
+          <i data-lucide="download" class="w-4 h-4"></i> <span class="hidden sm:inline">Instalar App</span>
+        </button>
+
+        <button onclick="handleLogout()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold p-2 rounded-xl border border-slate-700 transition" title="Sair">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAINEL PROPRIETÁRIO -->
+  <main id="ownerMainPanel" class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+    <div class="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-800 gap-1 text-xs font-semibold overflow-x-auto">
+      <button id="btnTabMenu" onclick="switchAdminTab('menu')" class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 text-white flex items-center justify-center gap-2 transition whitespace-nowrap">
+        <i data-lucide="utensils" class="w-4 h-4"></i> Cardápio (<span id="totalItemsCount">0</span>)
+      </button>
+      <button id="btnTabOwner" onclick="switchAdminTab('owner')" class="flex-1 py-2.5 px-3 rounded-xl text-slate-400 hover:bg-slate-900 flex items-center justify-center gap-2 transition whitespace-nowrap">
+        <i data-lucide="phone-call" class="w-4 h-4"></i> WhatsApp & PIX
+      </button>
+    </div>
+
+    <div id="tabMenu" class="space-y-4">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex gap-2 overflow-x-auto pb-1 text-xs font-medium no-scrollbar">
+          <button onclick="filterCat('todos')" class="cat-filter-btn bg-slate-100 text-slate-900 px-3.5 py-1.5 rounded-xl whitespace-nowrap" data-cat="todos">Todos</button>
+          <button onclick="filterCat('pratos')" class="cat-filter-btn bg-slate-950 border border-slate-800 text-slate-400 px-3.5 py-1.5 rounded-xl whitespace-nowrap" data-cat="pratos">🍲 Refeições</button>
+          <button onclick="filterCat('sobremesas')" class="cat-filter-btn bg-slate-950 border border-slate-800 text-slate-400 px-3.5 py-1.5 rounded-xl whitespace-nowrap" data-cat="sobremesas">🍰 Sobremesas</button>
+          <button onclick="filterCat('bebidas')" class="cat-filter-btn bg-slate-950 border border-slate-800 text-slate-400 px-3.5 py-1.5 rounded-xl whitespace-nowrap" data-cat="bebidas">🥤 Bebidas</button>
+        </div>
+
+        <button onclick="openProductModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg shadow-rose-600/20 transition whitespace-nowrap">
+          <i data-lucide="plus" class="w-4 h-4"></i> Novo Item
+        </button>
+      </div>
+
+      <div id="adminMenuList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <div id="tabOwner" class="hidden bg-slate-950 p-6 rounded-3xl border border-slate-800 max-w-lg mx-auto space-y-4 text-xs">
+      <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+        <div class="bg-emerald-500/10 text-emerald-400 p-2.5 rounded-2xl border border-emerald-500/20">
+          <i data-lucide="message-square" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-sm text-white">Configuração do WhatsApp & PIX</h3>
+          <p class="text-slate-400">Defina onde receber os pedidos.</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">WhatsApp para Pedidos (com DDD) *</label>
+          <input type="tel" id="editPhone" placeholder="Ex: 5527999998888" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">E-mail Cadastrado</label>
+          <input type="email" id="editEmail" placeholder="seu-email@marmitaria.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tipo PIX</label>
+            <select id="editPixType" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
+              <option value="CPF">CPF</option>
+              <option value="CNPJ">CNPJ</option>
+              <option value="E-mail">E-mail</option>
+              <option value="Telefone">Telefone</option>
+              <option value="Aleatória">Chave Aleatória</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Chave PIX</label>
+            <input type="text" id="editPixKey" placeholder="Sua chave" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Titular</label>
+            <input type="text" id="editPixName" placeholder="Nome Completo" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Cidade</label>
+            <input type="text" id="editPixCity" placeholder="Sua Cidade" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
+          </div>
+        </div>
+
+        <button onclick="saveOwnerDataChanges()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
+          <i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODO CLIENTE -->
+  <main id="clientMainPanel" class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full space-y-6 hidden">
+    <div class="bg-slate-950 p-4 rounded-3xl border border-slate-800 flex items-center justify-between">
+      <div>
+        <h2 class="font-bold text-white text-sm">Cardápio do Dia</h2>
+        <p class="text-xs text-slate-400">Monte seu pedido e envie direto pelo WhatsApp.</p>
+      </div>
+      <button onclick="toggleClientMode()" class="bg-slate-800 text-slate-300 text-xs px-3 py-1.5 rounded-xl border border-slate-700 font-semibold">
+        Voltar ao Painel
+      </button>
+    </div>
+
+    <div id="clientMenuList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+    <div id="cartBar" class="fixed bottom-4 left-4 right-4 max-w-lg mx-auto bg-rose-600 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between z-40 hidden">
+      <div>
+        <span id="cartCount" class="text-xs bg-rose-800 px-2 py-0.5 rounded-md font-bold">0 itens</span>
+        <div id="cartTotal" class="font-black text-base">R$ 0,00</div>
+      </div>
+      <button onclick="openCartModal()" class="bg-white text-rose-600 font-bold text-xs px-4 py-2.5 rounded-xl shadow hover:bg-rose-50 transition flex items-center gap-1.5">
+        <i data-lucide="shopping-cart" class="w-4 h-4"></i> Ver Pedido
+      </button>
+    </div>
+  </main>
+
+  <!-- MODAL CARRINHO -->
+  <div id="cartModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="text-rose-500 w-4 h-4"></i> Finalizar Pedido
+        </h3>
+        <button onclick="closeCartModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div id="cartItemsList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+
+      <div class="border-t border-slate-800 pt-3 space-y-3">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Seu Nome *</label>
+          <input type="text" id="clientName" placeholder="Ex: João Silva" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Endereço de Entrega *</label>
+          <input type="text" id="clientAddress" placeholder="Rua, Número, Bairro" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Forma de Pagamento *</label>
+          <select id="clientPayment" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+            <option value="PIX">PIX (Chave enviada no WhatsApp)</option>
+            <option value="Cartão na Entrega">Cartão de Crédito/Débito na Entrega</option>
+            <option value="Dinheiro">Dinheiro</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Observações</label>
+          <input type="text" id="clientNotes" placeholder="Ex: Sem cebola..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-sm font-bold">
+          <span>Total:</span>
+          <span id="cartModalTotal" class="text-rose-500 text-base">R$ 0,00</span>
+        </div>
+
+        <button onclick="sendOrderToWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 text-xs">
+          <i data-lucide="message-square" class="w-4 h-4"></i> Enviar Pedido via WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PRODUTO -->
+  <div id="productModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="modalTitle" class="font-bold text-white text-sm">Adicionar Item ao Cardápio</h3>
+        <button onclick="closeProductModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form id="productForm" onsubmit="saveProduct(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="editItemId">
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Nome do Prato *</label>
+          <input type="text" id="inputTitle" required placeholder="Ex: Marmita Executiva" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Categoria *</label>
+            <select id="inputCategory" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+              <option value="pratos">🍲 Refeição</option>
+              <option value="sobremesas">🍰 Sobremesa</option>
+              <option value="bebidas">🥤 Bebida</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Preço (R$) *</label>
+            <input type="number" id="inputPrice" step="0.01" required placeholder="20.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Tag de Destaque</label>
+          <select id="inputTag" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+            <option value="">Nenhum</option>
+            <option value="MAIS PEDIDO">Mais Pedido</option>
+            <option value="TRADICIONAL">Tradicional</option>
+            <option value="FAVORITO">Favorito</option>
+            <option value="HEALTHY">Fit / Saudável</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Descrição</label>
+          <textarea id="inputDesc" rows="2" placeholder="Ingredientes e detalhes..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"></textarea>
+        </div>
+
+        <div class="space-y-2 border-t border-slate-800 pt-3">
+          <label class="block font-semibold text-slate-300">Foto do Prato</label>
+          <input type="file" id="inputFile" accept="image/*" onchange="handleFileSelect(event)" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-500/10 file:text-rose-400 cursor-pointer">
+          <p class="text-[10px] text-slate-500">Ou informe a URL da imagem:</p>
+          <input type="url" id="inputUrl" placeholder="https://..." oninput="handleUrlInput()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white">
+
+          <div id="previewContainer" class="hidden mt-2">
+            <img id="imgPreview" class="w-20 h-20 object-cover rounded-2xl border border-slate-800">
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeProductModal()" class="flex-1 border border-slate-800 py-2.5 rounded-xl font-semibold text-slate-400 hover:bg-slate-800">Cancelar</button>
+          <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition">Salvar Prato</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // --- REGISTRO DO SERVICE WORKER COM AUTO-REFRESH NO GITHUB ---
+    let deferredPrompt = null;
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+          reg.onupdatefound = () => {
+            const installingWorker = reg.installing;
+            installingWorker.onstatechange = () => {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // Atualização detectada do GitHub: recarrega a página automaticamente
+                window.location.reload();
+              }
+            };
+          };
+        });
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    async function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') deferredPrompt = null;
+        return;
+      }
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isIOS) {
+        alert("No Safari (iOS):\n\n1. Toque em 'Compartilhar'.\n2. Escolha 'Adicionar à Tela de Início'.");
+      } else {
+        alert("O app já está instalado ou a página não está rodando via HTTPS.");
+      }
+    }
+
+    // --- LÓGICA DO APP ---
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      setTimeout(() => {
+        const bar = document.getElementById('splashBar');
+        if (bar) bar.style.width = '100%';
+      }, 50);
+
+      setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        if (splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => splash.classList.add('hidden'), 700);
+        }
+      }, 5200);
+
+      checkAuthStatus();
+      renderAdminMenu();
+    });
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    function bufferToBase64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+    function base64ToBuffer(str) { return Uint8Array.from(atob(str), c => c.charCodeAt(0)).buffer; }
+
+    async function deriveEncryptionKey(password, saltUint8) {
+      const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
+      return await crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: saltUint8, iterations: 100000, hash: "SHA-256" },
+        keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+      );
+    }
+
+    async function encryptObject(dataObj, password) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveEncryptionKey(password, salt);
+      const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoder.encode(JSON.stringify(dataObj)));
+      return { salt: bufferToBase64(salt), iv: bufferToBase64(iv), payload: bufferToBase64(ciphertext) };
+    }
+
+    async function decryptObject(encryptedContainer, password) {
+      try {
+        const salt = new Uint8Array(base64ToBuffer(encryptedContainer.salt));
+        const iv = new Uint8Array(base64ToBuffer(encryptedContainer.iv));
+        const payload = base64ToBuffer(encryptedContainer.payload);
+        const key = await deriveEncryptionKey(password, salt);
+        const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, payload);
+        return JSON.parse(decoder.decode(decryptedBuffer));
+      } catch (err) {
+        throw new Error("Senha incorreta.");
+      }
+    }
+
+    let activeSessionPassword = null;
+    let decryptedOwnerData = null;
+    let itemsDatabase = JSON.parse(localStorage.getItem('marmita_items_db')) || [];
+    let activeFilter = 'todos';
+    let base64Image = '';
+    let cart = [];
+
+    function checkAuthStatus() {
+      const encryptedData = localStorage.getItem('marmita_owner_encrypted');
+      toggleAuthMode(encryptedData ? 'login' : 'register');
+    }
+
+    function toggleAuthMode(mode) {
+      const authScreen = document.getElementById('authScreen');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const title = document.getElementById('authTitle');
+
+      authScreen.classList.remove('hidden');
+      if (mode === 'register') {
+        title.innerText = "Configurar Conta do Proprietário";
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+      } else {
+        title.innerText = "Acesso Restrito do Proprietário";
+        registerForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const rawOwnerData = {
+        phone: document.getElementById('regPhone').value.trim(),
+        email: document.getElementById('regEmail').value.trim(),
+        pixType: document.getElementById('regPixType').value,
+        pixKey: document.getElementById('regPixKey').value.trim(),
+        pixName: document.getElementById('regPixName').value.trim(),
+        pixCity: document.getElementById('regPixCity').value.trim()
+      };
+      const password = document.getElementById('regPassword').value;
+
+      try {
+        const encryptedContainer = await encryptObject(rawOwnerData, password);
+        localStorage.setItem('marmita_owner_encrypted', JSON.stringify(encryptedContainer));
+        activeSessionPassword = password;
+        decryptedOwnerData = rawOwnerData;
+        document.getElementById('authScreen').classList.add('hidden');
+        populateOwnerUI();
+      } catch (err) { alert("Erro ao salvar: " + err.message); }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const password = document.getElementById('loginPassword').value;
+      const encryptedContainer = JSON.parse(localStorage.getItem('marmita_owner_encrypted'));
+
+      try {
+        decryptedOwnerData = await decryptObject(encryptedContainer, password);
+        activeSessionPassword = password;
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('loginPassword').value = '';
+        populateOwnerUI();
+      } catch (err) { alert("Senha incorreta!"); }
+    }
+
+    function handleLogout() {
+      activeSessionPassword = null;
+      decryptedOwnerData = null;
+      document.getElementById('authScreen').classList.remove('hidden');
+      toggleAuthMode('login');
+    }
+
+    function populateOwnerUI() {
+      if (!decryptedOwnerData) return;
+      document.getElementById('editPhone').value = decryptedOwnerData.phone || '';
+      document.getElementById('editEmail').value = decryptedOwnerData.email || '';
+      document.getElementById('editPixType').value = decryptedOwnerData.pixType || 'CPF';
+      document.getElementById('editPixKey').value = decryptedOwnerData.pixKey || '';
+      document.getElementById('editPixName').value = decryptedOwnerData.pixName || '';
+      document.getElementById('editPixCity').value = decryptedOwnerData.pixCity || '';
+    }
+
+    async function saveOwnerDataChanges() {
+      if (!activeSessionPassword) return handleLogout();
+      decryptedOwnerData = {
+        phone: document.getElementById('editPhone').value.trim(),
+        email: document.getElementById('editEmail').value.trim(),
+        pixType: document.getElementById('editPixType').value,
+        pixKey: document.getElementById('editPixKey').value.trim(),
+        pixName: document.getElementById('editPixName').value.trim(),
+        pixCity: document.getElementById('editPixCity').value.trim()
+      };
+
+      try {
+        const encryptedContainer = await encryptObject(decryptedOwnerData, activeSessionPassword);
+        localStorage.setItem('marmita_owner_encrypted', JSON.stringify(encryptedContainer));
+        alert("Dados salvos com sucesso!");
+      } catch (err) { alert("Erro ao salvar: " + err.message); }
+    }
+
+    function renderAdminMenu() {
+      const listContainer = document.getElementById('adminMenuList');
+      const filtered = activeFilter === 'todos' ? itemsDatabase : itemsDatabase.filter(i => i.category === activeFilter);
+      document.getElementById('totalItemsCount').innerText = itemsDatabase.length;
+
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `
+          <div class="col-span-full bg-slate-950 p-10 rounded-3xl text-center border border-dashed border-slate-800 space-y-3">
+            <p class="text-slate-400 text-xs">Nenhum item cadastrado.</p>
+            <button onclick="openProductModal()" class="bg-rose-600 text-white font-bold px-4 py-2 rounded-xl text-xs inline-flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Prato
+            </button>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      listContainer.innerHTML = filtered.map(item => `
+        <div class="bg-slate-950 p-4 rounded-3xl border border-slate-800 flex gap-3 items-center justify-between">
+          <img src="${item.image}" class="w-20 h-20 rounded-2xl object-cover bg-slate-900 flex-shrink-0">
+          <div class="flex-1 min-w-0 pr-2">
+            <h3 class="font-bold text-sm text-white truncate">${item.title}</h3>
+            <p class="text-[11px] text-slate-400 line-clamp-1">${item.desc || ''}</p>
+            <div class="font-black text-rose-500 text-sm mt-1">R$ ${parseFloat(item.price).toFixed(2)}</div>
+          </div>
+          <div class="flex flex-col gap-1.5 border-l border-slate-800 pl-3">
+            <button onclick="editProduct('${item.id}')" class="p-2 bg-slate-900 text-slate-300 rounded-xl" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+            <button onclick="deleteProduct('${item.id}')" class="p-2 bg-rose-500/10 text-rose-400 rounded-xl" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function filterCat(cat) {
+      activeFilter = cat;
+      document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+        btn.className = `cat-filter-btn px-3.5 py-1.5 rounded-xl whitespace-nowrap ${btn.getAttribute('data-cat') === cat ? 'bg-slate-100 text-slate-900' : 'bg-slate-950 border border-slate-800 text-slate-400'}`;
+      });
+      renderAdminMenu();
+    }
+
+    function saveProduct(event) {
+      event.preventDefault();
+      const editId = document.getElementById('editItemId').value;
+      const title = document.getElementById('inputTitle').value.trim();
+      const category = document.getElementById('inputCategory').value;
+      const price = parseFloat(document.getElementById('inputPrice').value);
+      const tag = document.getElementById('inputTag').value;
+      const desc = document.getElementById('inputDesc').value.trim();
+      const urlImg = document.getElementById('inputUrl').value.trim();
+      const finalImg = base64Image || urlImg || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80";
+
+      if (editId) {
+        const idx = itemsDatabase.findIndex(i => String(i.id) === String(editId));
+        if (idx !== -1) itemsDatabase[idx] = { id: editId, title, category, price, tag, desc, image: finalImg };
+      } else {
+        itemsDatabase.push({ id: String(Date.now()), title, category, price, tag, desc, image: finalImg });
+      }
+
+      localStorage.setItem('marmita_items_db', JSON.stringify(itemsDatabase));
+      renderAdminMenu();
+      closeProductModal();
+    }
+
+    function deleteProduct(id) {
+      if (confirm("Deseja excluir este prato?")) {
+        itemsDatabase = itemsDatabase.filter(item => String(item.id) !== String(id));
+        localStorage.setItem('marmita_items_db', JSON.stringify(itemsDatabase));
+        renderAdminMenu();
+      }
+    }
+
+    function editProduct(id) {
+      const item = itemsDatabase.find(i => String(i.id) === String(id));
+      if (!item) return;
+
+      document.getElementById('modalTitle').innerText = "Editar Prato";
+      document.getElementById('editItemId').value = item.id;
+      document.getElementById('inputTitle').value = item.title;
+      document.getElementById('inputCategory').value = item.category;
+      document.getElementById('inputPrice').value = item.price;
+      document.getElementById('inputTag').value = item.tag || '';
+      document.getElementById('inputDesc').value = item.desc || '';
+      document.getElementById('inputUrl').value = item.image.startsWith('data:') ? '' : item.image;
+      document.getElementById('imgPreview').src = item.image;
+      document.getElementById('previewContainer').classList.remove('hidden');
+      document.getElementById('productModal').classList.remove('hidden');
+    }
+
+    function openProductModal() {
+      document.getElementById('productForm').reset();
+      document.getElementById('editItemId').value = '';
+      document.getElementById('previewContainer').classList.add('hidden');
+      base64Image = '';
+      document.getElementById('productModal').classList.remove('hidden');
+    }
+
+    function closeProductModal() { document.getElementById('productModal').classList.add('hidden'); }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          base64Image = e.target.result;
+          document.getElementById('imgPreview').src = base64Image;
+          document.getElementById('previewContainer').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleUrlInput() {
+      const url = document.getElementById('inputUrl').value.trim();
+      if (url) {
+        base64Image = '';
+        document.getElementById('imgPreview').src = url;
+        document.getElementById('previewContainer').classList.remove('hidden');
+      }
+    }
+
+    function toggleClientMode() {
+      const ownerPanel = document.getElementById('ownerMainPanel');
+      const clientPanel = document.getElementById('clientMainPanel');
+      const isClient = clientPanel.classList.contains('hidden');
+
+      if (isClient) {
+        ownerPanel.classList.add('hidden');
+        clientPanel.classList.remove('hidden');
+        renderClientMenu();
+      } else {
+        clientPanel.classList.add('hidden');
+        ownerPanel.classList.remove('hidden');
+      }
+    }
+
+    function renderClientMenu() {
+      const clientList = document.getElementById('clientMenuList');
+      if (itemsDatabase.length === 0) {
+        clientList.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500 text-xs">Cardápio vazio.</div>`;
+        return;
+      }
+
+      clientList.innerHTML = itemsDatabase.map(item => `
+        <div class="bg-slate-950 p-4 rounded-3xl border border-slate-800 flex gap-3 items-center justify-between">
+          <img src="${item.image}" class="w-20 h-20 rounded-2xl object-cover bg-slate-900 flex-shrink-0">
+          <div class="flex-1 min-w-0">
+            <h3 class="font-bold text-sm text-white truncate">${item.title}</h3>
+            <p class="text-[11px] text-slate-400 line-clamp-2">${item.desc || ''}</p>
+            <div class="font-black text-rose-500 text-sm mt-1">R$ ${parseFloat(item.price).toFixed(2)}</div>
+          </div>
+          <button onclick="addToCart('${item.id}')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold p-2.5 rounded-xl transition flex items-center justify-center">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+          </button>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function addToCart(id) {
+      const item = itemsDatabase.find(i => String(i.id) === String(id));
+      if (!item) return;
+
+      const existing = cart.find(i => String(i.id) === String(id));
+      if (existing) { existing.qty += 1; } else { cart.push({ ...item, qty: 1 }); }
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const cartBar = document.getElementById('cartBar');
+      const totalCount = cart.reduce((acc, curr) => acc + curr.qty, 0);
+      const totalPrice = cart.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
+
+      if (totalCount > 0) {
+        cartBar.classList.remove('hidden');
+        document.getElementById('cartCount').innerText = `${totalCount} item(ns)`;
+        document.getElementById('cartTotal').innerText = `R$ ${totalPrice.toFixed(2)}`;
+      } else {
+        cartBar.classList.add('hidden');
+      }
+    }
+
+    function openCartModal() {
+      const list = document.getElementById('cartItemsList');
+      const totalPrice = cart.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
+
+      list.innerHTML = cart.map(item => `
+        <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+          <div>
+            <span class="font-bold text-white">${item.title}</span>
+            <div class="text-[10px] text-slate-400">${item.qty}x R$ ${parseFloat(item.price).toFixed(2)}</div>
+          </div>
+          <span class="font-bold text-rose-400">R$ ${(item.price * item.qty).toFixed(2)}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('cartModalTotal').innerText = `R$ ${totalPrice.toFixed(2)}`;
+      document.getElementById('cartModal').classList.remove('hidden');
+    }
+
+    function closeCartModal() { document.getElementById('cartModal').classList.add('hidden'); }
+
+    function sendOrderToWhatsApp() {
+      if (!decryptedOwnerData || !decryptedOwnerData.phone) {
+        alert("O proprietário ainda não cadastrou o WhatsApp.");
+        return;
+      }
+
+      const name = document.getElementById('clientName').value.trim();
+      const address = document.getElementById('clientAddress').value.trim();
+      const payment = document.getElementById('clientPayment').value;
+      const notes = document.getElementById('clientNotes').value.trim();
+
+      if (!name || !address) {
+        alert("Preencha nome e endereço!");
+        return;
+      }
+
+      const totalPrice = cart.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
+      let msg = `*NOVO PEDIDO DE MARMITA!* 🍲\n\n`;
+      msg += `*Cliente:* ${name}\n`;
+      msg += `*Endereço:* ${address}\n`;
+      msg += `*Pagamento:* ${payment}\n`;
+      if (notes) msg += `*Obs:* ${notes}\n`;
+      msg += `\n*ITENS DO PEDIDO:*\n`;
+
+      cart.forEach(item => {
+        msg += `• ${item.qty}x ${item.title} - R$ ${(item.price * item.qty).toFixed(2)}\n`;
+      });
+
+      msg += `\n*VALOR TOTAL:* R$ ${totalPrice.toFixed(2)}\n\n`;
+
+      if (payment === 'PIX' && decryptedOwnerData.pixKey) {
+        msg += `*Dados do PIX:*\n`;
+        msg += `Chave (${decryptedOwnerData.pixType}): ${decryptedOwnerData.pixKey}\n`;
+        msg += `Titular: ${decryptedOwnerData.pixName}\n`;
+      }
+
+      const cleanPhone = decryptedOwnerData.phone.replace(/\D/g, '');
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+      cart = [];
+      updateCartUI();
+      closeCartModal();
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById('tabMenu').classList.toggle('hidden', tab !== 'menu');
+      document.getElementById('tabOwner').classList.toggle('hidden', tab !== 'owner');
+      document.getElementById('btnTabMenu').className = tab === 'menu' ? 'flex-1 py-2.5 px-3 rounded-xl bg-rose-600 text-white flex items-center justify-center gap-2 transition whitespace-nowrap' : 'flex-1 py-2.5 px-3 rounded-xl text-slate-400 hover:bg-slate-900 flex items-center justify-center gap-2 transition whitespace-nowrap';
+      document.getElementById('btnTabOwner').className = tab === 'owner' ? 'flex-1 py-2.5 px-3 rounded-xl bg-rose-600 text-white flex items-center justify-center gap-2 transition whitespace-nowrap' : 'flex-1 py-2.5 px-3 rounded-xl text-slate-400 hover:bg-slate-900 flex items-center justify-center gap-2 transition whitespace-nowrap';
+    }
+  </script>
+</body>
+</html>
