@@ -4,700 +4,480 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="theme-color" content="#0f172a">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MARMITARIA DEGGUST - Mania de servir bem !</title>
+  <title>MARMITARIA DEGGUST - Gestão de Pedidos & Clientes</title>
   
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/png" href="./logo.png">
-  <link rel="apple-touch-icon" href="./logo.png">
 
-  <!-- Tailwind CSS & Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  
-  <!-- EmailJS SDK (Serviço de Notificação por E-mail) -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
   <style>
-    @keyframes logoPop {
-      0% { transform: scale(0.5) rotate(-8deg); opacity: 0; }
-      70% { transform: scale(1.08) rotate(2deg); opacity: 1; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-    @keyframes floatGlow {
-      0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 15px rgba(225, 29, 72, 0.4)); }
-      50% { transform: translateY(-8px); filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.6)); }
-    }
-    .animate-logo {
-      animation: logoPop 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, floatGlow 3.5s ease-in-out infinite 1.2s;
-    }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-rose-500 selection:text-white">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between">
 
-  <!-- TELA DE CARREGAMENTO (SPLASH SCREEN COM LOGO ANIMADA) -->
-  <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center p-6 transition-opacity duration-700">
-    <div class="relative flex items-center justify-center mb-6">
-      <div class="absolute w-48 h-48 bg-rose-600/20 rounded-full blur-2xl animate-pulse"></div>
-      <img src="./logo.png" alt="MARMITARIA DEGGUST" class="relative w-36 h-36 rounded-full object-cover border-2 border-amber-500/40 shadow-2xl animate-logo">
-    </div>
-    
-    <h1 class="text-2xl font-black text-white tracking-widest uppercase mt-2">MARMITARIA DEGGUST</h1>
-    <p class="text-xs text-amber-400 font-medium mt-1 tracking-wide">Mania de servir bem !</p>
-    
-    <div class="w-56 bg-slate-900 h-2 rounded-full mt-8 overflow-hidden border border-slate-800 p-0.5">
-      <div id="splashBar" class="bg-gradient-to-r from-rose-500 to-amber-400 h-full w-0 rounded-full transition-all duration-[4500ms] ease-linear"></div>
-    </div>
-    <span class="text-[10px] text-slate-600 mt-2 font-mono">Iniciando sistema exclusivo de gestão...</span>
-  </div>
-
-  <!-- TELA DE AUTENTICAÇÃO -->
-  <div id="authScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 overflow-y-auto hidden">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-5">
-      
-      <div id="playStoreBanner" class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3">
-        <div class="flex items-center gap-3">
-          <img src="./logo.png" alt="MARMITARIA DEGGUST" class="w-12 h-12 rounded-2xl object-cover border border-amber-500/30">
-          <div class="flex-1 min-w-0">
-            <h3 class="font-bold text-white text-sm truncate">MARMITARIA DEGGUST</h3>
-            <p class="text-[11px] text-amber-400 font-medium">Mania de servir bem !</p>
-          </div>
-        </div>
-
-        <button onclick="installPWA()" class="w-full bg-[#01875f] hover:bg-[#007352] active:scale-[0.98] text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-[#01875f]/20">
-          <i data-lucide="download" class="w-4 h-4"></i> Instalar Aplicativo no Celular
-        </button>
-      </div>
-
-      <div class="text-center space-y-1">
-        <h2 id="authTitle" class="text-lg font-bold text-white">Acesso do Proprietário</h2>
-        <p id="authSubtitle" class="text-xs text-slate-400">Proteção local criptografada para suas configurações.</p>
-      </div>
-
-      <!-- FORMULÁRIO DE LOGIN -->
-      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Senha Mestra *</label>
-          <div class="relative">
-            <input type="password" id="loginPassword" required placeholder="Digite sua senha" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500 pl-10">
-            <i data-lucide="key-round" class="w-4 h-4 text-slate-500 absolute left-3 top-3.5"></i>
-          </div>
-        </div>
-
-        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-rose-600/20">
-          <i data-lucide="unlock" class="w-4 h-4"></i> Entrar no Painel
-        </button>
-
-        <p class="text-[11px] text-center text-slate-500 pt-2 border-t border-slate-800">
-          Primeiro acesso? <button type="button" onclick="toggleAuthMode('register')" class="text-rose-400 font-bold hover:underline">Configurar Conta</button>
-        </p>
-      </form>
-
-      <!-- FORMULÁRIO DE CADASTRO -->
-      <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3 text-xs hidden">
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">WhatsApp para Receber Notificações (com DDD) *</label>
-          <div class="relative">
-            <input type="tel" id="regPhone" required placeholder="Ex: 5527999998888" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white pl-10 font-mono">
-            <i data-lucide="phone" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">E-mail para Notificações de Acesso *</label>
-          <input type="email" id="regEmail" required placeholder="contato@deggust.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Tipo PIX</label>
-            <select id="regPixType" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-              <option value="CPF">CPF</option>
-              <option value="CNPJ">CNPJ</option>
-              <option value="E-mail">E-mail</option>
-              <option value="Telefone">Telefone</option>
-              <option value="Aleatória">Chave Aleatória</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Chave PIX *</label>
-            <input type="text" id="regPixKey" required placeholder="Sua chave" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Titular *</label>
-            <input type="text" id="regPixName" required placeholder="Nome Completo" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Cidade *</label>
-            <input type="text" id="regPixCity" required placeholder="Sua Cidade" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-          </div>
-        </div>
-
-        <div class="border-t border-slate-800 pt-2">
-          <label class="block font-semibold text-rose-400 mb-1">Senha Mestra *</label>
-          <input type="password" id="regPassword" minlength="6" required placeholder="Mínimo 6 caracteres" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
-          <i data-lucide="check-circle" class="w-4 h-4"></i> Salvar e Iniciar
-        </button>
-
-        <p class="text-[11px] text-center text-slate-500 pt-1">
-          Já possui conta? <button type="button" onclick="toggleAuthMode('login')" class="text-rose-400 font-bold hover:underline">Fazer Login</button>
-        </p>
-      </form>
-    </div>
-  </div>
-
-  <!-- CABEÇALHO DO PAINEL -->
-  <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+  <header class="bg-slate-950 border-b border-slate-800 sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <img src="./logo.png" alt="MARMITARIA DEGGUST" class="w-10 h-10 rounded-xl object-cover border border-amber-500/30">
+        <img src="./logo.png" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&q=80';" class="w-12 h-12 rounded-2xl object-cover border border-amber-500/40 shadow-md">
         <div>
-          <h1 class="font-bold text-base text-white leading-tight">MARMITARIA DEGGUST</h1>
-          <p class="text-[10px] text-amber-400 font-medium flex items-center gap-1">
-            <i data-lucide="sparkles" class="w-3 h-3"></i> Mania de servir bem !
-          </p>
+          <h1 class="font-black text-base text-white">MARMITARIA DEGGUST</h1>
+          <p class="text-[11px] text-amber-400 font-semibold">Painel de Controle Exclusivo do Proprietário</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button onclick="installPWA()" class="bg-[#01875f] hover:bg-[#007352] text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
-          <i data-lucide="download" class="w-4 h-4"></i> <span class="hidden sm:inline">Instalar App</span>
-        </button>
-
-        <button onclick="handleLogout()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold p-2 rounded-xl border border-slate-700 transition" title="Sair">
-          <i data-lucide="log-out" class="w-4 h-4"></i>
-        </button>
-      </div>
+      <button onclick="openConfigModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2 text-xs font-bold">
+        <i data-lucide="settings" class="w-4 h-4"></i> <span class="hidden sm:inline">Configuração PIX</span>
+      </button>
     </div>
   </header>
 
-  <!-- PAINEL EXCLUSIVO DO PROPRIETÁRIO -->
-  <main id="ownerMainPanel" class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
-    <div class="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-800 gap-1 text-xs font-semibold overflow-x-auto">
-      <button id="btnTabMenu" onclick="switchAdminTab('menu')" class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 text-white flex items-center justify-center gap-2 transition whitespace-nowrap">
-        <i data-lucide="utensils" class="w-4 h-4"></i> Pratos Cadastrados (<span id="totalItemsCount">0</span>)
-      </button>
-      <button id="btnTabOwner" onclick="switchAdminTab('owner')" class="flex-1 py-2.5 px-3 rounded-xl text-slate-400 hover:bg-slate-900 flex items-center justify-center gap-2 transition whitespace-nowrap">
-        <i data-lucide="phone-call" class="w-4 h-4"></i> WhatsApp & PIX
-      </button>
+  <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center gap-3">
+        <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+          <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 font-medium">Total Cobrado (Dia)</span>
+          <p id="statTotalAmount" class="text-lg font-black text-emerald-400">R$ 0,00</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center gap-3">
+        <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+          <i data-lucide="utensils" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 font-medium">Marmitas Registradas</span>
+          <p id="statTotalOrders" class="text-lg font-black text-amber-400">0</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center gap-3">
+        <div class="p-3 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20">
+          <i data-lucide="truck" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 font-medium">Entregas Pendentes</span>
+          <p id="statPendingOrders" class="text-lg font-black text-rose-400">0</p>
+        </div>
+      </div>
     </div>
 
-    <!-- ABA CARDÁPIO -->
-    <div id="tabMenu" class="space-y-4">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex gap-2 overflow-x-auto pb-1 text-xs font-medium no-scrollbar">
-          <button onclick="filterCat('todos')" class="cat-filter-btn bg-slate-100 text-slate-900 px-3.5 py-1.5 rounded-xl whitespace-nowrap" data-cat="todos">Todos</button>
-          <button onclick="filterCat('pratos')" class="cat-filter-btn bg-slate-950 border border-slate-800 text-slate-400 px-3.5 py-1.5 rounded-xl whitespace-nowrap" data-cat="pratos">🍲 Refeições</button>
-          <button onclick="filterCat('sobremesas')" class="cat-filter-btn bg-slate-950 border border-slate-800 text-slate-400 px-3.5 py-1.5 rounded-xl whitespace-nowrap" data-cat="sobremesas">🍰 Sobremesas</button>
-          <button onclick="filterCat('bebidas')" class="cat-filter-btn bg-slate-950 border border-slate-800 text-slate-400 px-3.5 py-1.5 rounded-xl whitespace-nowrap" data-cat="bebidas">🥤 Bebidas</button>
-        </div>
-
-        <button onclick="openProductModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg shadow-rose-600/20 transition whitespace-nowrap">
-          <i data-lucide="plus" class="w-4 h-4"></i> Novo Prato
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-950 p-2 rounded-2xl border border-slate-800">
+      <div class="flex gap-2">
+        <button id="btnTabOrders" onclick="switchTab('orders')" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white flex items-center gap-2">
+          <i data-lucide="list-ordered" class="w-4 h-4"></i> Controle de Entregas & Clientes
+        </button>
+        <button id="btnTabMenu" onclick="switchTab('menu')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-900 flex items-center gap-2">
+          <i data-lucide="utensils" class="w-4 h-4"></i> Pratos Cadastrados
         </button>
       </div>
 
-      <div id="adminMenuList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-    </div>
-
-    <!-- ABA CONFIGURAÇÕES -->
-    <div id="tabOwner" class="hidden bg-slate-950 p-6 rounded-3xl border border-slate-800 max-w-lg mx-auto space-y-4 text-xs">
-      <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
-        <div class="bg-emerald-500/10 text-emerald-400 p-2.5 rounded-2xl border border-emerald-500/20">
-          <i data-lucide="message-square" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <h3 class="font-bold text-sm text-white">Configuração de Alertas, WhatsApp & PIX</h3>
-          <p class="text-slate-400">Defina os dados para envio de notificações e PIX.</p>
-        </div>
-      </div>
-
-      <div class="space-y-3">
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">WhatsApp para Notificações (com DDD) *</label>
-          <input type="tel" id="editPhone" placeholder="Ex: 5527999998888" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">E-mail para Alertas de Login *</label>
-          <input type="email" id="editEmail" placeholder="seu-email@deggust.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Tipo PIX</label>
-            <select id="editPixType" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
-              <option value="CPF">CPF</option>
-              <option value="CNPJ">CNPJ</option>
-              <option value="E-mail">E-mail</option>
-              <option value="Telefone">Telefone</option>
-              <option value="Aleatória">Chave Aleatória</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Chave PIX</label>
-            <input type="text" id="editPixKey" placeholder="Sua chave" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Titular</label>
-            <input type="text" id="editPixName" placeholder="Nome Completo" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Cidade</label>
-            <input type="text" id="editPixCity" placeholder="Sua Cidade" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
-          </div>
-        </div>
-
-        <button onclick="saveOwnerDataChanges()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
-          <i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações
+      <div class="flex gap-2 w-full sm:w-auto">
+        <button onclick="openOrderModal()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i> + Novo Pedido / Entrega
+        </button>
+        <button onclick="openProductModal()" class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl flex items-center justify-center gap-2 border border-slate-700 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i> Cadastrar Marmita
         </button>
       </div>
     </div>
+
+    <section id="tabOrders" class="space-y-4">
+      <div class="bg-slate-950 border border-slate-800 rounded-3xl p-4 overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider">
+              <th class="p-3">Cliente / Contato</th>
+              <th class="p-3">Endereço de Entrega</th>
+              <th class="p-3">Marmita / Item</th>
+              <th class="p-3">Valor</th>
+              <th class="p-3">Forma de Pagamento</th>
+              <th class="p-3">Status</th>
+              <th class="p-3 text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody" class="divide-y divide-slate-800/60 text-slate-200 font-medium">
+            </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tabMenu" class="hidden space-y-4">
+      <div id="menuGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
   </main>
 
-  <!-- MODAL ADICIONAR/EDITAR PRODUTO -->
-  <div id="productModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+  <div id="orderModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 id="modalTitle" class="font-bold text-white text-sm">Adicionar Prato ao Cardápio</h3>
-        <button onclick="closeProductModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <h3 id="orderModalTitle" class="font-bold text-white text-sm">Registrar Novo Pedido / Cliente</h3>
+        <button onclick="closeOrderModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
-      <form id="productForm" onsubmit="saveProduct(event)" class="space-y-3 text-xs">
-        <input type="hidden" id="editItemId">
+      <form onsubmit="saveOrder(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="orderEditId">
 
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Nome do Prato *</label>
-          <input type="text" id="inputTitle" required placeholder="Ex: Marmita Executiva de Carne" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">Nome do Cliente *</label>
+            <input type="text" id="orderClientName" required placeholder="Ex: João da Silva" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">WhatsApp do Cliente (com DDD)</label>
+            <input type="tel" id="orderClientPhone" placeholder="Ex: 5527999998888" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Endereço Completo de Entrega *</label>
+          <input type="text" id="orderClientAddress" required placeholder="Rua, Número, Bairro, Ref." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Categoria *</label>
-            <select id="inputCategory" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-              <option value="pratos">🍲 Refeição</option>
-              <option value="sobremesas">🍰 Sobremesa</option>
-              <option value="bebidas">🥤 Bebida</option>
+            <label class="block text-slate-300 font-semibold mb-1">Marmita / Refeição *</label>
+            <input type="text" id="orderItemName" required placeholder="Ex: Marmita Executiva" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">Valor a ser Cobrado (R$) *</label>
+            <input type="number" step="0.01" id="orderAmount" required placeholder="22.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold text-emerald-400">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">Forma de Pagamento *</label>
+            <select id="orderPaymentMethod" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+              <option value="PIX">PIX</option>
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="Cartão de Débito">Cartão de Débito</option>
+              <option value="Cartão de Crédito">Cartão de Crédito</option>
+              <option value="A Pagar / Fiado">A Pagar / Fiado</option>
             </select>
           </div>
+
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Preço (R$) *</label>
-            <input type="number" id="inputPrice" step="0.01" required placeholder="20.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Tag de Destaque</label>
-          <select id="inputTag" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-            <option value="">Nenhum</option>
-            <option value="MAIS PEDIDO">Mais Pedido</option>
-            <option value="TRADICIONAL">Tradicional</option>
-            <option value="FAVORITO">Favorito</option>
-            <option value="HEALTHY">Fit / Saudável</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Descrição</label>
-          <textarea id="inputDesc" rows="2" placeholder="Acompanhamentos e detalhes..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"></textarea>
-        </div>
-
-        <div class="space-y-2 border-t border-slate-800 pt-3">
-          <label class="block font-semibold text-slate-300">Foto do Prato</label>
-          <input type="file" id="inputFile" accept="image/*" onchange="handleFileSelect(event)" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-500/10 file:text-rose-400 cursor-pointer">
-          <p class="text-[10px] text-slate-500">Ou informe a URL da imagem:</p>
-          <input type="url" id="inputUrl" placeholder="https://..." oninput="handleUrlInput()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white">
-
-          <div id="previewContainer" class="hidden mt-2">
-            <img id="imgPreview" class="w-20 h-20 object-cover rounded-2xl border border-slate-800">
+            <label class="block text-slate-300 font-semibold mb-1">Status da Entrega *</label>
+            <select id="orderStatus" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+              <option value="Pendente">Pendente</option>
+              <option value="Em Rota">Em Rota de Entrega</option>
+              <option value="Entregue">Entregue / Pago</option>
+            </select>
           </div>
         </div>
 
         <div class="flex gap-2 pt-3 border-t border-slate-800">
-          <button type="button" onclick="closeProductModal()" class="flex-1 border border-slate-800 py-2.5 rounded-xl font-semibold text-slate-400 hover:bg-slate-800">Cancelar</button>
-          <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition">Salvar Prato</button>
+          <button type="button" onclick="closeOrderModal()" class="flex-1 border border-slate-800 py-2.5 rounded-xl font-semibold text-slate-400">Cancelar</button>
+          <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition">Salvar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="productModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-sm">Cadastrar Nova Marmita no Menu</h3>
+        <button onclick="closeProductModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="saveProduct(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Nome do Prato *</label>
+          <input type="text" id="prodTitle" required placeholder="Ex: Marmita de Frango Grelhado" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Preço Padrão (R$) *</label>
+          <input type="number" step="0.01" id="prodPrice" required placeholder="20.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Descrição / Acompanhamentos</label>
+          <textarea id="prodDesc" rows="2" placeholder="Arroz, feijão, salada, farofa..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"></textarea>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeProductModal()" class="flex-1 border border-slate-800 py-2.5 rounded-xl text-slate-400">Cancelar</button>
+          <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition">Salvar Marmita</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="configModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-sm">Configuração da Chave PIX</h3>
+        <button onclick="closeConfigModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="saveOwnerSettings(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Tipo da Chave PIX</label>
+          <select id="ownerPixType" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+            <option value="CNPJ">CNPJ</option>
+            <option value="CPF">CPF</option>
+            <option value="Telefone">Telefone</option>
+            <option value="E-mail">E-mail</option>
+            <option value="Chave Aleatória">Chave Aleatória</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Sua Chave PIX *</label>
+          <input type="text" id="ownerPixKey" required placeholder="Insira sua chave PIX" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Nome do Titular *</label>
+          <input type="text" id="ownerPixName" required placeholder="Ex: Marmitaria Deggust LTDA" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeConfigModal()" class="flex-1 border border-slate-800 py-2.5 rounded-xl text-slate-400">Cancelar</button>
+          <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition">Salvar PIX</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    // --- INICIALIZAÇÃO EMAILJS ---
-    (function() {
-      // Substitua pela sua Public Key do EmailJS
-      emailjs.init("SUA_PUBLIC_KEY_AQUI"); 
-    })();
+    // --- ESTADO LOCAL DE DADOS ---
+    let ordersList = JSON.parse(localStorage.getItem('deggust_orders_db')) || [];
+    let menuList = JSON.parse(localStorage.getItem('deggust_menu_db')) || [
+      { id: '1', title: 'Marmita Executiva de Carne', price: 22.00, desc: 'Arroz, feijão, bife acebolado, farofa e salada.' },
+      { id: '2', title: 'Marmita Frango Grelhado', price: 20.00, desc: 'Arroz, feijão, filé de frango e salada.' }
+    ];
+    let ownerConfig = JSON.parse(localStorage.getItem('deggust_owner_config')) || {
+      pixType: 'CNPJ',
+      pixKey: '00000000000000',
+      pixName: 'MARMITARIA DEGGUST'
+    };
 
-    function sendLoginEmailAlert(userEmail) {
-      if (!userEmail) return;
-      const templateParams = {
-        to_email: userEmail,
-        app_name: "MARMITARIA DEGGUST",
-        message: "Aviso de Segurança: Foi realizado login no aplicativo MARMITARIA DEGGUST.",
-        date_time: new Date().toLocaleString('pt-BR')
-      };
-
-      // Service ID configurado: service_ztq7dn8
-      emailjs.send("service_ztq7dn8", "SEU_TEMPLATE_ID", templateParams)
-        .then(() => console.log("Notificação de login enviada por e-mail com sucesso!"))
-        .catch(err => console.error("Falha ao enviar e-mail:", err));
-    }
-
-    function sendWhatsAppLoginAlert(phone) {
-      if (!phone) return;
-      const cleanPhone = phone.replace(/\D/g, ''); 
-      const message = encodeURIComponent(`🚨 *MARMITARIA DEGGUST*\n\n*Aviso de Segurança:* Um novo login foi realizado no seu aplicativo em ${new Date().toLocaleString('pt-BR')}.`);
-      
-      window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
-    }
-
-    // --- PWA DEFERRED INSTALL ---
-    let deferredPrompt = null;
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then((reg) => {
-          reg.onupdatefound = () => {
-            const installingWorker = reg.installing;
-            installingWorker.onstatechange = () => {
-              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                window.location.reload();
-              }
-            };
-          };
-        });
-      });
-    }
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-    });
-
-    async function installPWA() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') deferredPrompt = null;
-        return;
-      }
-      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      if (isIOS) {
-        alert("No Safari (iOS):\n\n1. Toque no botão 'Compartilhar' (ícone com quadrado e seta).\n2. Selecione 'Adicionar à Tela de Início'.");
-      } else {
-        alert("O aplicativo já está instalado ou sua hospedagem precisa de HTTPS.");
-      }
-    }
-
-    // --- CICLO DE VIDA DO DOM ---
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      
-      setTimeout(() => {
-        const bar = document.getElementById('splashBar');
-        if (bar) bar.style.width = '100%';
-      }, 50);
-
-      setTimeout(() => {
-        const splash = document.getElementById('splashScreen');
-        if (splash) {
-          splash.style.opacity = '0';
-          setTimeout(() => splash.classList.add('hidden'), 700);
-        }
-      }, 4800);
-
-      checkAuthStatus();
-      renderAdminMenu();
+      renderOrdersTable();
+      renderMenu();
+      updateDashboardStats();
+      loadConfig();
     });
 
-    // --- CRIPTOGRAFIA AES-GCM DO PROPRIETÁRIO ---
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
+    // --- CONTROLE DE NAVEGAÇÃO E ABAS ---
+    function switchTab(tab) {
+      document.getElementById('tabOrders').classList.toggle('hidden', tab !== 'orders');
+      document.getElementById('tabMenu').classList.toggle('hidden', tab !== 'menu');
+      
+      document.getElementById('btnTabOrders').className = tab === 'orders' 
+        ? 'px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white flex items-center gap-2'
+        : 'px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-900 flex items-center gap-2';
 
-    function bufferToBase64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
-    function base64ToBuffer(str) { return Uint8Array.from(atob(str), c => c.charCodeAt(0)).buffer; }
-
-    async function deriveEncryptionKey(password, saltUint8) {
-      const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
-      return await crypto.subtle.deriveKey(
-        { name: "PBKDF2", salt: saltUint8, iterations: 100000, hash: "SHA-256" },
-        keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
-      );
+      document.getElementById('btnTabMenu').className = tab === 'menu' 
+        ? 'px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white flex items-center gap-2'
+        : 'px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-900 flex items-center gap-2';
     }
 
-    async function encryptObject(dataObj, password) {
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const key = await deriveEncryptionKey(password, salt);
-      const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoder.encode(JSON.stringify(dataObj)));
-      return { salt: bufferToBase64(salt), iv: bufferToBase64(iv), payload: bufferToBase64(ciphertext) };
-    }
-
-    async function decryptObject(encryptedContainer, password) {
-      try {
-        const salt = new Uint8Array(base64ToBuffer(encryptedContainer.salt));
-        const iv = new Uint8Array(base64ToBuffer(encryptedContainer.iv));
-        const payload = base64ToBuffer(encryptedContainer.payload);
-        const key = await deriveEncryptionKey(password, salt);
-        const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, payload);
-        return JSON.parse(decoder.decode(decryptedBuffer));
-      } catch (err) {
-        throw new Error("Senha incorreta.");
-      }
-    }
-
-    // --- AUTENTICAÇÃO E ESTADO ---
-    let activeSessionPassword = null;
-    let decryptedOwnerData = null;
-    let itemsDatabase = JSON.parse(localStorage.getItem('marmita_items_db')) || [];
-    let activeFilter = 'todos';
-    let base64Image = '';
-
-    function checkAuthStatus() {
-      const encryptedData = localStorage.getItem('marmita_owner_encrypted');
-      toggleAuthMode(encryptedData ? 'login' : 'register');
-    }
-
-    function toggleAuthMode(mode) {
-      const authScreen = document.getElementById('authScreen');
-      const loginForm = document.getElementById('loginForm');
-      const registerForm = document.getElementById('registerForm');
-      const title = document.getElementById('authTitle');
-
-      authScreen.classList.remove('hidden');
-      if (mode === 'register') {
-        title.innerText = "Configurar Conta do Proprietário";
-        loginForm.classList.add('hidden');
-        registerForm.classList.remove('hidden');
-      } else {
-        title.innerText = "Acesso Restrito do Proprietário";
-        registerForm.classList.add('hidden');
-        loginForm.classList.remove('hidden');
-      }
-    }
-
-    async function handleRegister(e) {
-      e.preventDefault();
-      const rawOwnerData = {
-        phone: document.getElementById('regPhone').value.trim(),
-        email: document.getElementById('regEmail').value.trim(),
-        pixType: document.getElementById('regPixType').value,
-        pixKey: document.getElementById('regPixKey').value.trim(),
-        pixName: document.getElementById('regPixName').value.trim(),
-        pixCity: document.getElementById('regPixCity').value.trim()
-      };
-      const password = document.getElementById('regPassword').value;
-
-      try {
-        const encryptedContainer = await encryptObject(rawOwnerData, password);
-        localStorage.setItem('marmita_owner_encrypted', JSON.stringify(encryptedContainer));
-        activeSessionPassword = password;
-        decryptedOwnerData = rawOwnerData;
-        document.getElementById('authScreen').classList.add('hidden');
-        populateOwnerUI();
-      } catch (err) { alert("Erro ao salvar: " + err.message); }
-    }
-
-    async function handleLogin(e) {
-      e.preventDefault();
-      const password = document.getElementById('loginPassword').value;
-      const encryptedContainer = JSON.parse(localStorage.getItem('marmita_owner_encrypted'));
-
-      try {
-        decryptedOwnerData = await decryptObject(encryptedContainer, password);
-        activeSessionPassword = password;
-        
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('loginPassword').value = '';
-        populateOwnerUI();
-
-        // DISPARO DAS NOTIFICAÇÕES DE LOGIN
-        if (decryptedOwnerData.email) {
-          sendLoginEmailAlert(decryptedOwnerData.email);
-        }
-        if (decryptedOwnerData.phone) {
-          sendWhatsAppLoginAlert(decryptedOwnerData.phone);
-        }
-
-      } catch (err) { alert("Senha incorreta!"); }
-    }
-
-    function handleLogout() {
-      activeSessionPassword = null;
-      decryptedOwnerData = null;
-      document.getElementById('authScreen').classList.remove('hidden');
-      toggleAuthMode('login');
-    }
-
-    function populateOwnerUI() {
-      if (!decryptedOwnerData) return;
-      document.getElementById('editPhone').value = decryptedOwnerData.phone || '';
-      document.getElementById('editEmail').value = decryptedOwnerData.email || '';
-      document.getElementById('editPixType').value = decryptedOwnerData.pixType || 'CPF';
-      document.getElementById('editPixKey').value = decryptedOwnerData.pixKey || '';
-      document.getElementById('editPixName').value = decryptedOwnerData.pixName || '';
-      document.getElementById('editPixCity').value = decryptedOwnerData.pixCity || '';
-    }
-
-    async function saveOwnerDataChanges() {
-      if (!activeSessionPassword) return handleLogout();
-      decryptedOwnerData = {
-        phone: document.getElementById('editPhone').value.trim(),
-        email: document.getElementById('editEmail').value.trim(),
-        pixType: document.getElementById('editPixType').value,
-        pixKey: document.getElementById('editPixKey').value.trim(),
-        pixName: document.getElementById('editPixName').value.trim(),
-        pixCity: document.getElementById('editPixCity').value.trim()
-      };
-
-      try {
-        const encryptedContainer = await encryptObject(decryptedOwnerData, activeSessionPassword);
-        localStorage.setItem('marmita_owner_encrypted', JSON.stringify(encryptedContainer));
-        alert("Configurações salvas com sucesso!");
-      } catch (err) { alert("Erro ao salvar: " + err.message); }
-    }
-
-    // --- GERENCIAMENTO DE CARDÁPIO ---
-    function renderAdminMenu() {
-      const listContainer = document.getElementById('adminMenuList');
-      const filtered = activeFilter === 'todos' ? itemsDatabase : itemsDatabase.filter(i => i.category === activeFilter);
-      document.getElementById('totalItemsCount').innerText = itemsDatabase.length;
-
-      if (filtered.length === 0) {
-        listContainer.innerHTML = `
-          <div class="col-span-full bg-slate-950 p-10 rounded-3xl text-center border border-dashed border-slate-800 space-y-3">
-            <p class="text-slate-400 text-xs">Nenhum prato cadastrado.</p>
-            <button onclick="openProductModal()" class="bg-rose-600 text-white font-bold px-4 py-2 rounded-xl text-xs inline-flex items-center gap-1.5">
-              <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Prato
-            </button>
-          </div>`;
-        lucide.createIcons();
+    // --- GESTÃO DE PEDIDOS E CLIENTES ---
+    function renderOrdersTable() {
+      const tbody = document.getElementById('ordersTableBody');
+      if (ordersList.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center p-8 text-slate-500">
+              Nenhum cliente ou pedido registrado hoje. Clique em "+ Novo Pedido" para cadastrar.
+            </td>
+          </tr>`;
         return;
       }
 
-      listContainer.innerHTML = filtered.map(item => `
-        <div class="bg-slate-950 p-4 rounded-3xl border border-slate-800 flex gap-3 items-center justify-between">
-          <img src="${item.image}" class="w-20 h-20 rounded-2xl object-cover bg-slate-900 flex-shrink-0">
-          <div class="flex-1 min-w-0 pr-2">
-            <h3 class="font-bold text-sm text-white truncate">${item.title}</h3>
-            <p class="text-[11px] text-slate-400 line-clamp-1">${item.desc || ''}</p>
-            <div class="font-black text-rose-500 text-sm mt-1">R$ ${parseFloat(item.price).toFixed(2)}</div>
+      tbody.innerHTML = ordersList.map((ord, idx) => `
+        <tr class="hover:bg-slate-900/50 transition">
+          <td class="p-3">
+            <div class="font-bold text-white">${ord.clientName}</div>
+            <div class="text-[10px] text-slate-400">${ord.clientPhone || 'Sem Whats'}</div>
+          </td>
+          <td class="p-3 text-slate-300 max-w-[180px] truncate" title="${ord.clientAddress}">${ord.clientAddress}</td>
+          <td class="p-3 text-amber-400 font-semibold">${ord.itemName}</td>
+          <td class="p-3 font-bold text-emerald-400">R$ ${parseFloat(ord.amount).toFixed(2)}</td>
+          <td class="p-3"><span class="bg-slate-900 border border-slate-800 px-2 py-1 rounded-lg text-[10px]">${ord.paymentMethod}</span></td>
+          <td class="p-3">
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${
+              ord.status === 'Entregue' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+              ord.status === 'Em Rota' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+              'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+            }">${ord.status}</span>
+          </td>
+          <td class="p-3 text-center">
+            <div class="flex items-center justify-center gap-1">
+              ${ord.clientPhone ? `<button onclick="sendWhatsAppBilling('${ord.id}')" class="p-1.5 bg-emerald-600/20 text-emerald-400 rounded-lg hover:bg-emerald-600 hover:text-white" title="Enviar Cobrança WhatsApp"><i data-lucide="message-circle" class="w-4 h-4"></i></button>` : ''}
+              <button onclick="editOrder('${ord.id}')" class="p-1.5 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+              <button onclick="deleteOrder('${ord.id}')" class="p-1.5 bg-rose-500/10 text-rose-400 rounded-lg hover:bg-rose-600 hover:text-white" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function saveOrder(e) {
+      e.preventDefault();
+      const id = document.getElementById('orderEditId').value;
+      const orderData = {
+        id: id || String(Date.now()),
+        clientName: document.getElementById('orderClientName').value.trim(),
+        clientPhone: document.getElementById('orderClientPhone').value.trim(),
+        clientAddress: document.getElementById('orderClientAddress').value.trim(),
+        itemName: document.getElementById('orderItemName').value.trim(),
+        amount: parseFloat(document.getElementById('orderAmount').value),
+        paymentMethod: document.getElementById('orderPaymentMethod').value,
+        status: document.getElementById('orderStatus').value
+      };
+
+      if (id) {
+        const idx = ordersList.findIndex(o => o.id === id);
+        if (idx !== -1) ordersList[idx] = orderData;
+      } else {
+        ordersList.unshift(orderData);
+      }
+
+      localStorage.setItem('deggust_orders_db', JSON.stringify(ordersList));
+      renderOrdersTable();
+      updateDashboardStats();
+      closeOrderModal();
+    }
+
+    function editOrder(id) {
+      const ord = ordersList.find(o => o.id === id);
+      if (!ord) return;
+      document.getElementById('orderEditId').value = ord.id;
+      document.getElementById('orderClientName').value = ord.clientName;
+      document.getElementById('orderClientPhone').value = ord.clientPhone || '';
+      document.getElementById('orderClientAddress').value = ord.clientAddress;
+      document.getElementById('orderItemName').value = ord.itemName;
+      document.getElementById('orderAmount').value = ord.amount;
+      document.getElementById('orderPaymentMethod').value = ord.paymentMethod;
+      document.getElementById('orderStatus').value = ord.status;
+      openOrderModal();
+    }
+
+    function deleteOrder(id) {
+      if (confirm("Deseja excluir este registro de cliente/pedido?")) {
+        ordersList = ordersList.filter(o => o.id !== id);
+        localStorage.setItem('deggust_orders_db', JSON.stringify(ordersList));
+        renderOrdersTable();
+        updateDashboardStats();
+      }
+    }
+
+    function sendWhatsAppBilling(id) {
+      const ord = ordersList.find(o => o.id === id);
+      if (!ord || !ord.clientPhone) return alert("Número de WhatsApp não informado para este cliente.");
+
+      let msg = `🍱 *MARMITARIA DEGGUST*\n\n`;
+      msg += `Olá, *${ord.clientName}*!\n`;
+      msg += `Acompanhamento da sua refeição:\n\n`;
+      msg += `• *Item:* ${ord.itemName}\n`;
+      msg += `• *Endereço:* ${ord.clientAddress}\n`;
+      msg += `• *Valor Total:* R$ ${parseFloat(ord.amount).toFixed(2)}\n`;
+      msg += `• *Forma de Pagamento:* ${ord.paymentMethod}\n\n`;
+
+      if (ord.paymentMethod === 'PIX') {
+        msg += `📌 *Dados para Pagamento via PIX:*\n`;
+        msg += `• Chave (${ownerConfig.pixType}): *${ownerConfig.pixKey}*\n`;
+        msg += `• Titular: *${ownerConfig.pixName}*\n\n`;
+        msg += `Por favor, nos envie o comprovante por aqui assim que efetuar! Obrigado.`;
+      }
+
+      const cleanPhone = ord.clientPhone.replace(/\D/g, '');
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function updateDashboardStats() {
+      const totalAmount = ordersList.reduce((acc, o) => acc + (parseFloat(o.amount) || 0), 0);
+      const pendingCount = ordersList.filter(o => o.status !== 'Entregue').length;
+
+      document.getElementById('statTotalAmount').innerText = `R$ ${totalAmount.toFixed(2)}`;
+      document.getElementById('statTotalOrders').innerText = ordersList.length;
+      document.getElementById('statPendingOrders').innerText = pendingCount;
+    }
+
+    // --- GESTÃO DO CARDÁPIO ---
+    function renderMenu() {
+      const grid = document.getElementById('menuGrid');
+      grid.innerHTML = menuList.map(item => `
+        <div class="bg-slate-950 p-4 rounded-3xl border border-slate-800 flex justify-between items-center">
+          <div>
+            <h4 class="font-bold text-sm text-white">${item.title}</h4>
+            <p class="text-[11px] text-slate-400">${item.desc}</p>
+            <div class="font-black text-emerald-400 text-sm mt-1">R$ ${parseFloat(item.price).toFixed(2)}</div>
           </div>
-          <div class="flex flex-col gap-1.5 border-l border-slate-800 pl-3">
-            <button onclick="editProduct('${item.id}')" class="p-2 bg-slate-900 text-slate-300 rounded-xl" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-            <button onclick="deleteProduct('${item.id}')" class="p-2 bg-rose-500/10 text-rose-400 rounded-xl" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-          </div>
+          <button onclick="deleteProduct('${item.id}')" class="p-2 bg-rose-500/10 text-rose-400 rounded-xl hover:bg-rose-600 hover:text-white"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         </div>
       `).join('');
       lucide.createIcons();
     }
 
-    function filterCat(cat) {
-      activeFilter = cat;
-      document.querySelectorAll('.cat-filter-btn').forEach(btn => {
-        btn.className = `cat-filter-btn px-3.5 py-1.5 rounded-xl whitespace-nowrap ${btn.getAttribute('data-cat') === cat ? 'bg-slate-100 text-slate-900' : 'bg-slate-950 border border-slate-800 text-slate-400'}`;
+    function saveProduct(e) {
+      e.preventDefault();
+      menuList.push({
+        id: String(Date.now()),
+        title: document.getElementById('prodTitle').value.trim(),
+        price: parseFloat(document.getElementById('prodPrice').value),
+        desc: document.getElementById('prodDesc').value.trim()
       });
-      renderAdminMenu();
-    }
-
-    function saveProduct(event) {
-      event.preventDefault();
-      const editId = document.getElementById('editItemId').value;
-      const title = document.getElementById('inputTitle').value.trim();
-      const category = document.getElementById('inputCategory').value;
-      const price = parseFloat(document.getElementById('inputPrice').value);
-      const tag = document.getElementById('inputTag').value;
-      const desc = document.getElementById('inputDesc').value.trim();
-      const urlImg = document.getElementById('inputUrl').value.trim();
-      const finalImg = base64Image || urlImg || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80";
-
-      if (editId) {
-        const idx = itemsDatabase.findIndex(i => String(i.id) === String(editId));
-        if (idx !== -1) itemsDatabase[idx] = { id: editId, title, category, price, tag, desc, image: finalImg };
-      } else {
-        itemsDatabase.push({ id: String(Date.now()), title, category, price, tag, desc, image: finalImg });
-      }
-
-      localStorage.setItem('marmita_items_db', JSON.stringify(itemsDatabase));
-      renderAdminMenu();
+      localStorage.setItem('deggust_menu_db', JSON.stringify(menuList));
+      renderMenu();
       closeProductModal();
     }
 
     function deleteProduct(id) {
-      if (confirm("Deseja excluir este prato?")) {
-        itemsDatabase = itemsDatabase.filter(item => String(item.id) !== String(id));
-        localStorage.setItem('marmita_items_db', JSON.stringify(itemsDatabase));
-        renderAdminMenu();
+      if (confirm("Excluir esta marmita do cardápio?")) {
+        menuList = menuList.filter(m => m.id !== id);
+        localStorage.setItem('deggust_menu_db', JSON.stringify(menuList));
+        renderMenu();
       }
     }
 
-    function editProduct(id) {
-      const item = itemsDatabase.find(i => String(i.id) === String(id));
-      if (!item) return;
-
-      document.getElementById('modalTitle').innerText = "Editar Prato";
-      document.getElementById('editItemId').value = item.id;
-      document.getElementById('inputTitle').value = item.title;
-      document.getElementById('inputCategory').value = item.category;
-      document.getElementById('inputPrice').value = item.price;
-      document.getElementById('inputTag').value = item.tag || '';
-      document.getElementById('inputDesc').value = item.desc || '';
-      document.getElementById('inputUrl').value = item.image.startsWith('data:') ? '' : item.image;
-      document.getElementById('imgPreview').src = item.image;
-      document.getElementById('previewContainer').classList.remove('hidden');
-      document.getElementById('productModal').classList.remove('hidden');
+    // --- CONFIGURAÇÃO DO PIX ---
+    function loadConfig() {
+      document.getElementById('ownerPixType').value = ownerConfig.pixType || 'CNPJ';
+      document.getElementById('ownerPixKey').value = ownerConfig.pixKey || '';
+      document.getElementById('ownerPixName').value = ownerConfig.pixName || '';
     }
 
-    function openProductModal() {
-      document.getElementById('productForm').reset();
-      document.getElementById('editItemId').value = '';
-      document.getElementById('previewContainer').classList.add('hidden');
-      base64Image = '';
-      document.getElementById('productModal').classList.remove('hidden');
+    function saveOwnerSettings(e) {
+      e.preventDefault();
+      ownerConfig = {
+        pixType: document.getElementById('ownerPixType').value,
+        pixKey: document.getElementById('ownerPixKey').value.trim(),
+        pixName: document.getElementById('ownerPixName').value.trim()
+      };
+      localStorage.setItem('deggust_owner_config', JSON.stringify(ownerConfig));
+      closeConfigModal();
+      alert("Sua chave PIX foi configurada com sucesso!");
     }
 
+    // --- MODAIS ---
+    function openOrderModal() {
+      document.getElementById('orderEditId').value = '';
+      document.getElementById('orderModal').classList.remove('hidden');
+    }
+    function closeOrderModal() { document.getElementById('orderModal').classList.add('hidden'); }
+    
+    function openProductModal() { document.getElementById('productModal').classList.remove('hidden'); }
     function closeProductModal() { document.getElementById('productModal').classList.add('hidden'); }
 
-    function handleFileSelect(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = e => {
-          base64Image = e.target.result;
-          document.getElementById('imgPreview').src = base64Image;
-          document.getElementById('previewContainer').classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function handleUrlInput() {
-      const url = document.getElementById('inputUrl').value.trim();
-      if (url) {
-        base64Image = '';
-        document.getElementById('imgPreview').src = url;
-        document.getElementById('previewContainer').classList.remove('hidden');
-      }
-    }
-
-    function switchAdminTab(tab) {
-      document.getElementById('tabMenu').classList.toggle('hidden', tab !== 'menu');
-      document.getElementById('tabOwner').classList.toggle('hidden', tab !== 'owner');
-      document.getElementById('btnTabMenu').className = tab === 'menu' ? 'flex-1 py-2.5 px-3 rounded-xl bg-rose-600 text-white flex items-center justify-center gap-2 transition whitespace-nowrap' : 'flex-1 py-2.5 px-3 rounded-xl text-slate-400 hover:bg-slate-900 flex items-center justify-center gap-2 transition whitespace-nowrap';
-      document.getElementById('btnTabOwner').className = tab === 'owner' ? 'flex-1 py-2.5 px-3 rounded-xl bg-rose-600 text-white flex items-center justify-center gap-2 transition whitespace-nowrap' : 'flex-1 py-2.5 px-3 rounded-xl text-slate-400 hover:bg-slate-900 flex items-center justify-center gap-2 transition whitespace-nowrap';
-    }
+    function openConfigModal() { document.getElementById('configModal').classList.remove('hidden'); }
+    function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
   </script>
 </body>
 </html>
