@@ -6,39 +6,52 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Marmitaria Pro - Sistema de Gestão & Pedidos</title>
+  <title>MARMITARIA DEGGUST - Mania de servir bem !</title>
   
   <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" href="./logo.png">
+  <link rel="apple-touch-icon" href="./logo.png">
+
+  <!-- Tailwind CSS & Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   
+  <!-- EmailJS SDK (Serviço de Notificação por E-mail) -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
   <style>
-    @keyframes pulseGlow {
-      0%, 100% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.15); opacity: 1; }
+    @keyframes logoPop {
+      0% { transform: scale(0.5) rotate(-8deg); opacity: 0; }
+      70% { transform: scale(1.08) rotate(2deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
     }
-    .glow-animation { animation: pulseGlow 2.5s infinite ease-in-out; }
+    @keyframes floatGlow {
+      0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 15px rgba(225, 29, 72, 0.4)); }
+      50% { transform: translateY(-8px); filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.6)); }
+    }
+    .animate-logo {
+      animation: logoPop 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, floatGlow 3.5s ease-in-out infinite 1.2s;
+    }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-rose-500 selection:text-white">
 
-  <!-- SPLASH SCREEN DE 5 SEGUNDOS -->
+  <!-- TELA DE CARREGAMENTO (SPLASH SCREEN COM LOGO ANIMADA) -->
   <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center p-6 transition-opacity duration-700">
     <div class="relative flex items-center justify-center mb-6">
-      <div class="absolute w-36 h-36 bg-rose-600/30 rounded-full glow-animation blur-xl"></div>
-      <div class="relative w-24 h-24 bg-gradient-to-tr from-rose-600 to-amber-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-rose-600/40 border border-white/20">
-        <i data-lucide="utensils" class="w-12 h-12 text-white"></i>
-      </div>
+      <div class="absolute w-48 h-48 bg-rose-600/20 rounded-full blur-2xl animate-pulse"></div>
+      <img src="./logo.png" alt="MARMITARIA DEGGUST" class="relative w-36 h-36 rounded-full object-cover border-2 border-amber-500/40 shadow-2xl animate-logo">
     </div>
-    <h1 class="text-2xl font-black text-white tracking-widest uppercase">Marmitaria Pro</h1>
-    <p class="text-xs text-slate-400 mt-1 font-medium">Carregando ecossistema de pedidos...</p>
+    
+    <h1 class="text-2xl font-black text-white tracking-widest uppercase mt-2">MARMITARIA DEGGUST</h1>
+    <p class="text-xs text-amber-400 font-medium mt-1 tracking-wide">Mania de servir bem !</p>
     
     <div class="w-56 bg-slate-900 h-2 rounded-full mt-8 overflow-hidden border border-slate-800 p-0.5">
-      <div id="splashBar" class="bg-gradient-to-r from-rose-500 to-amber-400 h-full w-0 rounded-full transition-all duration-[5000ms] ease-linear"></div>
+      <div id="splashBar" class="bg-gradient-to-r from-rose-500 to-amber-400 h-full w-0 rounded-full transition-all duration-[4500ms] ease-linear"></div>
     </div>
-    <span class="text-[10px] text-slate-600 mt-2 font-mono">Iniciando módulos seguros...</span>
+    <span class="text-[10px] text-slate-600 mt-2 font-mono">Iniciando sistema exclusivo de gestão...</span>
   </div>
 
   <!-- TELA DE AUTENTICAÇÃO -->
@@ -47,12 +60,10 @@
       
       <div id="playStoreBanner" class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-500">
-            <i data-lucide="utensils" class="w-6 h-6"></i>
-          </div>
+          <img src="./logo.png" alt="MARMITARIA DEGGUST" class="w-12 h-12 rounded-2xl object-cover border border-amber-500/30">
           <div class="flex-1 min-w-0">
-            <h3 class="font-bold text-white text-sm truncate">Marmitaria Pro</h3>
-            <p class="text-[11px] text-slate-400 font-medium">Gestão & Pedidos WhatsApp</p>
+            <h3 class="font-bold text-white text-sm truncate">MARMITARIA DEGGUST</h3>
+            <p class="text-[11px] text-amber-400 font-medium">Mania de servir bem !</p>
           </div>
         </div>
 
@@ -66,6 +77,7 @@
         <p id="authSubtitle" class="text-xs text-slate-400">Proteção local criptografada para suas configurações.</p>
       </div>
 
+      <!-- FORMULÁRIO DE LOGIN -->
       <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 text-xs">
         <div>
           <label class="block font-semibold text-slate-300 mb-1">Senha Mestra *</label>
@@ -84,9 +96,10 @@
         </p>
       </form>
 
+      <!-- FORMULÁRIO DE CADASTRO -->
       <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3 text-xs hidden">
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">WhatsApp para Receber Pedidos (com DDD) *</label>
+          <label class="block font-semibold text-slate-300 mb-1">WhatsApp para Receber Notificações (com DDD) *</label>
           <div class="relative">
             <input type="tel" id="regPhone" required placeholder="Ex: 5527999998888" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white pl-10 font-mono">
             <i data-lucide="phone" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
@@ -94,8 +107,8 @@
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">E-mail de Contato *</label>
-          <input type="email" id="regEmail" required placeholder="contato@marmitaria.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+          <label class="block font-semibold text-slate-300 mb-1">E-mail para Notificações de Acesso *</label>
+          <input type="email" id="regEmail" required placeholder="contato@deggust.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -142,26 +155,20 @@
     </div>
   </div>
 
-  <!-- CABEÇALHO -->
+  <!-- CABEÇALHO DO PAINEL -->
   <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30">
     <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
       <div class="flex items-center gap-3">
-        <div class="bg-gradient-to-tr from-rose-600 to-amber-500 text-white p-2.5 rounded-2xl shadow-lg shadow-rose-600/20">
-          <i data-lucide="utensils" class="w-5 h-5"></i>
-        </div>
+        <img src="./logo.png" alt="MARMITARIA DEGGUST" class="w-10 h-10 rounded-xl object-cover border border-amber-500/30">
         <div>
-          <h1 class="font-bold text-base text-white leading-tight">Marmitaria Pro</h1>
-          <p class="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
-            <i data-lucide="message-square" class="w-3 h-3"></i> WhatsApp Conectado
+          <h1 class="font-bold text-base text-white leading-tight">MARMITARIA DEGGUST</h1>
+          <p class="text-[10px] text-amber-400 font-medium flex items-center gap-1">
+            <i data-lucide="sparkles" class="w-3 h-3"></i> Mania de servir bem !
           </p>
         </div>
       </div>
 
       <div class="flex items-center gap-2">
-        <button onclick="toggleClientMode()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
-          <i data-lucide="shopping-bag" class="w-4 h-4"></i> <span class="hidden sm:inline">Modo Cliente</span>
-        </button>
-
         <button onclick="installPWA()" class="bg-[#01875f] hover:bg-[#007352] text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
           <i data-lucide="download" class="w-4 h-4"></i> <span class="hidden sm:inline">Instalar App</span>
         </button>
@@ -173,17 +180,18 @@
     </div>
   </header>
 
-  <!-- PAINEL PROPRIETÁRIO -->
+  <!-- PAINEL EXCLUSIVO DO PROPRIETÁRIO -->
   <main id="ownerMainPanel" class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
     <div class="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-800 gap-1 text-xs font-semibold overflow-x-auto">
       <button id="btnTabMenu" onclick="switchAdminTab('menu')" class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 text-white flex items-center justify-center gap-2 transition whitespace-nowrap">
-        <i data-lucide="utensils" class="w-4 h-4"></i> Cardápio (<span id="totalItemsCount">0</span>)
+        <i data-lucide="utensils" class="w-4 h-4"></i> Pratos Cadastrados (<span id="totalItemsCount">0</span>)
       </button>
       <button id="btnTabOwner" onclick="switchAdminTab('owner')" class="flex-1 py-2.5 px-3 rounded-xl text-slate-400 hover:bg-slate-900 flex items-center justify-center gap-2 transition whitespace-nowrap">
         <i data-lucide="phone-call" class="w-4 h-4"></i> WhatsApp & PIX
       </button>
     </div>
 
+    <!-- ABA CARDÁPIO -->
     <div id="tabMenu" class="space-y-4">
       <div class="flex items-center justify-between gap-2">
         <div class="flex gap-2 overflow-x-auto pb-1 text-xs font-medium no-scrollbar">
@@ -194,33 +202,34 @@
         </div>
 
         <button onclick="openProductModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg shadow-rose-600/20 transition whitespace-nowrap">
-          <i data-lucide="plus" class="w-4 h-4"></i> Novo Item
+          <i data-lucide="plus" class="w-4 h-4"></i> Novo Prato
         </button>
       </div>
 
       <div id="adminMenuList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </div>
 
+    <!-- ABA CONFIGURAÇÕES -->
     <div id="tabOwner" class="hidden bg-slate-950 p-6 rounded-3xl border border-slate-800 max-w-lg mx-auto space-y-4 text-xs">
       <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
         <div class="bg-emerald-500/10 text-emerald-400 p-2.5 rounded-2xl border border-emerald-500/20">
           <i data-lucide="message-square" class="w-6 h-6"></i>
         </div>
         <div>
-          <h3 class="font-bold text-sm text-white">Configuração do WhatsApp & PIX</h3>
-          <p class="text-slate-400">Defina onde receber os pedidos.</p>
+          <h3 class="font-bold text-sm text-white">Configuração de Alertas, WhatsApp & PIX</h3>
+          <p class="text-slate-400">Defina os dados para envio de notificações e PIX.</p>
         </div>
       </div>
 
       <div class="space-y-3">
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">WhatsApp para Pedidos (com DDD) *</label>
+          <label class="block font-semibold text-slate-300 mb-1">WhatsApp para Notificações (com DDD) *</label>
           <input type="tel" id="editPhone" placeholder="Ex: 5527999998888" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">E-mail Cadastrado</label>
-          <input type="email" id="editEmail" placeholder="seu-email@marmitaria.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
+          <label class="block font-semibold text-slate-300 mb-1">E-mail para Alertas de Login *</label>
+          <input type="email" id="editEmail" placeholder="seu-email@deggust.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -258,85 +267,11 @@
     </div>
   </main>
 
-  <!-- MODO CLIENTE -->
-  <main id="clientMainPanel" class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full space-y-6 hidden">
-    <div class="bg-slate-950 p-4 rounded-3xl border border-slate-800 flex items-center justify-between">
-      <div>
-        <h2 class="font-bold text-white text-sm">Cardápio do Dia</h2>
-        <p class="text-xs text-slate-400">Monte seu pedido e envie direto pelo WhatsApp.</p>
-      </div>
-      <button onclick="toggleClientMode()" class="bg-slate-800 text-slate-300 text-xs px-3 py-1.5 rounded-xl border border-slate-700 font-semibold">
-        Voltar ao Painel
-      </button>
-    </div>
-
-    <div id="clientMenuList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-
-    <div id="cartBar" class="fixed bottom-4 left-4 right-4 max-w-lg mx-auto bg-rose-600 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between z-40 hidden">
-      <div>
-        <span id="cartCount" class="text-xs bg-rose-800 px-2 py-0.5 rounded-md font-bold">0 itens</span>
-        <div id="cartTotal" class="font-black text-base">R$ 0,00</div>
-      </div>
-      <button onclick="openCartModal()" class="bg-white text-rose-600 font-bold text-xs px-4 py-2.5 rounded-xl shadow hover:bg-rose-50 transition flex items-center gap-1.5">
-        <i data-lucide="shopping-cart" class="w-4 h-4"></i> Ver Pedido
-      </button>
-    </div>
-  </main>
-
-  <!-- MODAL CARRINHO -->
-  <div id="cartModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto text-xs">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-white text-sm flex items-center gap-2">
-          <i data-lucide="shopping-bag" class="text-rose-500 w-4 h-4"></i> Finalizar Pedido
-        </h3>
-        <button onclick="closeCartModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <div id="cartItemsList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
-
-      <div class="border-t border-slate-800 pt-3 space-y-3">
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Seu Nome *</label>
-          <input type="text" id="clientName" placeholder="Ex: João Silva" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Endereço de Entrega *</label>
-          <input type="text" id="clientAddress" placeholder="Rua, Número, Bairro" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Forma de Pagamento *</label>
-          <select id="clientPayment" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-            <option value="PIX">PIX (Chave enviada no WhatsApp)</option>
-            <option value="Cartão na Entrega">Cartão de Crédito/Débito na Entrega</option>
-            <option value="Dinheiro">Dinheiro</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Observações</label>
-          <input type="text" id="clientNotes" placeholder="Ex: Sem cebola..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-sm font-bold">
-          <span>Total:</span>
-          <span id="cartModalTotal" class="text-rose-500 text-base">R$ 0,00</span>
-        </div>
-
-        <button onclick="sendOrderToWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 text-xs">
-          <i data-lucide="message-square" class="w-4 h-4"></i> Enviar Pedido via WhatsApp
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL PRODUTO -->
+  <!-- MODAL ADICIONAR/EDITAR PRODUTO -->
   <div id="productModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 id="modalTitle" class="font-bold text-white text-sm">Adicionar Item ao Cardápio</h3>
+        <h3 id="modalTitle" class="font-bold text-white text-sm">Adicionar Prato ao Cardápio</h3>
         <button onclick="closeProductModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
@@ -345,7 +280,7 @@
 
         <div>
           <label class="block font-semibold text-slate-300 mb-1">Nome do Prato *</label>
-          <input type="text" id="inputTitle" required placeholder="Ex: Marmita Executiva" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+          <input type="text" id="inputTitle" required placeholder="Ex: Marmita Executiva de Carne" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -376,7 +311,7 @@
 
         <div>
           <label class="block font-semibold text-slate-300 mb-1">Descrição</label>
-          <textarea id="inputDesc" rows="2" placeholder="Ingredientes e detalhes..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"></textarea>
+          <textarea id="inputDesc" rows="2" placeholder="Acompanhamentos e detalhes..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"></textarea>
         </div>
 
         <div class="space-y-2 border-t border-slate-800 pt-3">
@@ -399,7 +334,36 @@
   </div>
 
   <script>
-    // --- REGISTRO DO SERVICE WORKER COM AUTO-REFRESH NO GITHUB ---
+    // --- INICIALIZAÇÃO EMAILJS ---
+    (function() {
+      // Substitua pela sua Public Key do EmailJS
+      emailjs.init("SUA_PUBLIC_KEY_AQUI"); 
+    })();
+
+    function sendLoginEmailAlert(userEmail) {
+      if (!userEmail) return;
+      const templateParams = {
+        to_email: userEmail,
+        app_name: "MARMITARIA DEGGUST",
+        message: "Aviso de Segurança: Foi realizado login no aplicativo MARMITARIA DEGGUST.",
+        date_time: new Date().toLocaleString('pt-BR')
+      };
+
+      // Service ID configurado: service_ztq7dn8
+      emailjs.send("service_ztq7dn8", "SEU_TEMPLATE_ID", templateParams)
+        .then(() => console.log("Notificação de login enviada por e-mail com sucesso!"))
+        .catch(err => console.error("Falha ao enviar e-mail:", err));
+    }
+
+    function sendWhatsAppLoginAlert(phone) {
+      if (!phone) return;
+      const cleanPhone = phone.replace(/\D/g, ''); 
+      const message = encodeURIComponent(`🚨 *MARMITARIA DEGGUST*\n\n*Aviso de Segurança:* Um novo login foi realizado no seu aplicativo em ${new Date().toLocaleString('pt-BR')}.`);
+      
+      window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+    }
+
+    // --- PWA DEFERRED INSTALL ---
     let deferredPrompt = null;
 
     if ('serviceWorker' in navigator) {
@@ -409,7 +373,6 @@
             const installingWorker = reg.installing;
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // Atualização detectada do GitHub: recarrega a página automaticamente
                 window.location.reload();
               }
             };
@@ -432,15 +395,16 @@
       }
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       if (isIOS) {
-        alert("No Safari (iOS):\n\n1. Toque em 'Compartilhar'.\n2. Escolha 'Adicionar à Tela de Início'.");
+        alert("No Safari (iOS):\n\n1. Toque no botão 'Compartilhar' (ícone com quadrado e seta).\n2. Selecione 'Adicionar à Tela de Início'.");
       } else {
-        alert("O app já está instalado ou a página não está rodando via HTTPS.");
+        alert("O aplicativo já está instalado ou sua hospedagem precisa de HTTPS.");
       }
     }
 
-    // --- LÓGICA DO APP ---
+    // --- CICLO DE VIDA DO DOM ---
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
+      
       setTimeout(() => {
         const bar = document.getElementById('splashBar');
         if (bar) bar.style.width = '100%';
@@ -452,12 +416,13 @@
           splash.style.opacity = '0';
           setTimeout(() => splash.classList.add('hidden'), 700);
         }
-      }, 5200);
+      }, 4800);
 
       checkAuthStatus();
       renderAdminMenu();
     });
 
+    // --- CRIPTOGRAFIA AES-GCM DO PROPRIETÁRIO ---
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 
@@ -493,12 +458,12 @@
       }
     }
 
+    // --- AUTENTICAÇÃO E ESTADO ---
     let activeSessionPassword = null;
     let decryptedOwnerData = null;
     let itemsDatabase = JSON.parse(localStorage.getItem('marmita_items_db')) || [];
     let activeFilter = 'todos';
     let base64Image = '';
-    let cart = [];
 
     function checkAuthStatus() {
       const encryptedData = localStorage.getItem('marmita_owner_encrypted');
@@ -553,9 +518,19 @@
       try {
         decryptedOwnerData = await decryptObject(encryptedContainer, password);
         activeSessionPassword = password;
+        
         document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('loginPassword').value = '';
         populateOwnerUI();
+
+        // DISPARO DAS NOTIFICAÇÕES DE LOGIN
+        if (decryptedOwnerData.email) {
+          sendLoginEmailAlert(decryptedOwnerData.email);
+        }
+        if (decryptedOwnerData.phone) {
+          sendWhatsAppLoginAlert(decryptedOwnerData.phone);
+        }
+
       } catch (err) { alert("Senha incorreta!"); }
     }
 
@@ -590,10 +565,11 @@
       try {
         const encryptedContainer = await encryptObject(decryptedOwnerData, activeSessionPassword);
         localStorage.setItem('marmita_owner_encrypted', JSON.stringify(encryptedContainer));
-        alert("Dados salvos com sucesso!");
+        alert("Configurações salvas com sucesso!");
       } catch (err) { alert("Erro ao salvar: " + err.message); }
     }
 
+    // --- GERENCIAMENTO DE CARDÁPIO ---
     function renderAdminMenu() {
       const listContainer = document.getElementById('adminMenuList');
       const filtered = activeFilter === 'todos' ? itemsDatabase : itemsDatabase.filter(i => i.category === activeFilter);
@@ -602,7 +578,7 @@
       if (filtered.length === 0) {
         listContainer.innerHTML = `
           <div class="col-span-full bg-slate-950 p-10 rounded-3xl text-center border border-dashed border-slate-800 space-y-3">
-            <p class="text-slate-400 text-xs">Nenhum item cadastrado.</p>
+            <p class="text-slate-400 text-xs">Nenhum prato cadastrado.</p>
             <button onclick="openProductModal()" class="bg-rose-600 text-white font-bold px-4 py-2 rounded-xl text-xs inline-flex items-center gap-1.5">
               <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Prato
             </button>
@@ -714,130 +690,6 @@
         document.getElementById('imgPreview').src = url;
         document.getElementById('previewContainer').classList.remove('hidden');
       }
-    }
-
-    function toggleClientMode() {
-      const ownerPanel = document.getElementById('ownerMainPanel');
-      const clientPanel = document.getElementById('clientMainPanel');
-      const isClient = clientPanel.classList.contains('hidden');
-
-      if (isClient) {
-        ownerPanel.classList.add('hidden');
-        clientPanel.classList.remove('hidden');
-        renderClientMenu();
-      } else {
-        clientPanel.classList.add('hidden');
-        ownerPanel.classList.remove('hidden');
-      }
-    }
-
-    function renderClientMenu() {
-      const clientList = document.getElementById('clientMenuList');
-      if (itemsDatabase.length === 0) {
-        clientList.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500 text-xs">Cardápio vazio.</div>`;
-        return;
-      }
-
-      clientList.innerHTML = itemsDatabase.map(item => `
-        <div class="bg-slate-950 p-4 rounded-3xl border border-slate-800 flex gap-3 items-center justify-between">
-          <img src="${item.image}" class="w-20 h-20 rounded-2xl object-cover bg-slate-900 flex-shrink-0">
-          <div class="flex-1 min-w-0">
-            <h3 class="font-bold text-sm text-white truncate">${item.title}</h3>
-            <p class="text-[11px] text-slate-400 line-clamp-2">${item.desc || ''}</p>
-            <div class="font-black text-rose-500 text-sm mt-1">R$ ${parseFloat(item.price).toFixed(2)}</div>
-          </div>
-          <button onclick="addToCart('${item.id}')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold p-2.5 rounded-xl transition flex items-center justify-center">
-            <i data-lucide="plus" class="w-5 h-5"></i>
-          </button>
-        </div>
-      `).join('');
-      lucide.createIcons();
-    }
-
-    function addToCart(id) {
-      const item = itemsDatabase.find(i => String(i.id) === String(id));
-      if (!item) return;
-
-      const existing = cart.find(i => String(i.id) === String(id));
-      if (existing) { existing.qty += 1; } else { cart.push({ ...item, qty: 1 }); }
-      updateCartUI();
-    }
-
-    function updateCartUI() {
-      const cartBar = document.getElementById('cartBar');
-      const totalCount = cart.reduce((acc, curr) => acc + curr.qty, 0);
-      const totalPrice = cart.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
-
-      if (totalCount > 0) {
-        cartBar.classList.remove('hidden');
-        document.getElementById('cartCount').innerText = `${totalCount} item(ns)`;
-        document.getElementById('cartTotal').innerText = `R$ ${totalPrice.toFixed(2)}`;
-      } else {
-        cartBar.classList.add('hidden');
-      }
-    }
-
-    function openCartModal() {
-      const list = document.getElementById('cartItemsList');
-      const totalPrice = cart.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
-
-      list.innerHTML = cart.map(item => `
-        <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <div>
-            <span class="font-bold text-white">${item.title}</span>
-            <div class="text-[10px] text-slate-400">${item.qty}x R$ ${parseFloat(item.price).toFixed(2)}</div>
-          </div>
-          <span class="font-bold text-rose-400">R$ ${(item.price * item.qty).toFixed(2)}</span>
-        </div>
-      `).join('');
-
-      document.getElementById('cartModalTotal').innerText = `R$ ${totalPrice.toFixed(2)}`;
-      document.getElementById('cartModal').classList.remove('hidden');
-    }
-
-    function closeCartModal() { document.getElementById('cartModal').classList.add('hidden'); }
-
-    function sendOrderToWhatsApp() {
-      if (!decryptedOwnerData || !decryptedOwnerData.phone) {
-        alert("O proprietário ainda não cadastrou o WhatsApp.");
-        return;
-      }
-
-      const name = document.getElementById('clientName').value.trim();
-      const address = document.getElementById('clientAddress').value.trim();
-      const payment = document.getElementById('clientPayment').value;
-      const notes = document.getElementById('clientNotes').value.trim();
-
-      if (!name || !address) {
-        alert("Preencha nome e endereço!");
-        return;
-      }
-
-      const totalPrice = cart.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
-      let msg = `*NOVO PEDIDO DE MARMITA!* 🍲\n\n`;
-      msg += `*Cliente:* ${name}\n`;
-      msg += `*Endereço:* ${address}\n`;
-      msg += `*Pagamento:* ${payment}\n`;
-      if (notes) msg += `*Obs:* ${notes}\n`;
-      msg += `\n*ITENS DO PEDIDO:*\n`;
-
-      cart.forEach(item => {
-        msg += `• ${item.qty}x ${item.title} - R$ ${(item.price * item.qty).toFixed(2)}\n`;
-      });
-
-      msg += `\n*VALOR TOTAL:* R$ ${totalPrice.toFixed(2)}\n\n`;
-
-      if (payment === 'PIX' && decryptedOwnerData.pixKey) {
-        msg += `*Dados do PIX:*\n`;
-        msg += `Chave (${decryptedOwnerData.pixType}): ${decryptedOwnerData.pixKey}\n`;
-        msg += `Titular: ${decryptedOwnerData.pixName}\n`;
-      }
-
-      const cleanPhone = decryptedOwnerData.phone.replace(/\D/g, '');
-      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-      cart = [];
-      updateCartUI();
-      closeCartModal();
     }
 
     function switchAdminTab(tab) {
