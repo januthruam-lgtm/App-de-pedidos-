@@ -3,481 +3,182 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="theme-color" content="#0f172a">
-  <title>MARMITARIA DEGGUST - Gestão de Pedidos & Clientes</title>
-  
-  <link rel="manifest" href="./manifest.json">
-  <link rel="icon" type="image/png" href="./logo.png">
+  <title>MARMITARIA DEGGUST - Painel da Franquia</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
-  <style>
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen p-4">
 
-  <header class="bg-slate-950 border-b border-slate-800 sticky top-0 z-30">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="./logo.png" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&q=80';" class="w-12 h-12 rounded-2xl object-cover border border-amber-500/40 shadow-md">
-        <div>
-          <h1 class="font-black text-base text-white">MARMITARIA DEGGUST</h1>
-          <p class="text-[11px] text-amber-400 font-semibold">Painel de Controle Exclusivo do Proprietário</p>
-        </div>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCT-DpI06em24o7cjgV67x2GaHom7BzLpM",
+      authDomain: "marmitaria-deggust.firebaseapp.com",
+      projectId: "marmitaria-deggust",
+      storageBucket: "marmitaria-deggust.firebasestorage.app",
+      messagingSenderId: "750433597063",
+      appId: "1:750433597063:web:b82cabcb8111411cd46a22",
+      measurementId: "G-7CYHMY89YV"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
+  <header class="max-w-5xl mx-auto flex items-center justify-between pb-6 border-b border-slate-800">
+    <div class="flex items-center gap-3">
+      <img src="./logo.png" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&q=80';" class="w-12 h-12 rounded-2xl border border-amber-500/40">
+      <div>
+        <h1 class="font-black text-lg text-white">MARMITARIA DEGGUST</h1>
+        <p class="text-xs text-amber-400 font-semibold">Painel Geral (Pedidos & Cardápio)</p>
       </div>
-
-      <button onclick="openConfigModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2 text-xs font-bold">
-        <i data-lucide="settings" class="w-4 h-4"></i> <span class="hidden sm:inline">Configuração PIX</span>
-      </button>
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+  <main class="max-w-5xl mx-auto mt-6 space-y-8">
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center gap-3">
-        <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
-          <i data-lucide="dollar-sign" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <span class="text-[11px] text-slate-400 font-medium">Total Cobrado (Dia)</span>
-          <p id="statTotalAmount" class="text-lg font-black text-emerald-400">R$ 0,00</p>
-        </div>
-      </div>
+    <!-- SEÇÃO: GERENCIAR CARDÁPIO -->
+    <div class="bg-slate-950 border border-slate-800 rounded-3xl p-5 space-y-4">
+      <h2 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+        <i data-lucide="utensils" class="w-4 h-4"></i> Gerenciar Cardápio dos Clientes
+      </h2>
 
-      <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center gap-3">
-        <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
-          <i data-lucide="utensils" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <span class="text-[11px] text-slate-400 font-medium">Marmitas Registradas</span>
-          <p id="statTotalOrders" class="text-lg font-black text-amber-400">0</p>
-        </div>
-      </div>
+      <form onsubmit="addMenuItem(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+        <input type="text" id="menuTitle" required placeholder="Nome do Prato / Marmita" class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
+        <input type="text" id="menuDesc" placeholder="Acompanhamentos / Descrição" class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
+        <input type="number" step="0.01" id="menuPrice" required placeholder="Preço (R$)" class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white">
+        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl p-2.5 transition">
+          + Adicionar Prato
+        </button>
+      </form>
 
-      <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center gap-3">
-        <div class="p-3 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20">
-          <i data-lucide="truck" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <span class="text-[11px] text-slate-400 font-medium">Entregas Pendentes</span>
-          <p id="statPendingOrders" class="text-lg font-black text-rose-400">0</p>
-        </div>
+      <!-- LISTA DE PRATOS ATUAIS -->
+      <div id="ownerMenuList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+        <!-- Renderizado via JS -->
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-950 p-2 rounded-2xl border border-slate-800">
-      <div class="flex gap-2">
-        <button id="btnTabOrders" onclick="switchTab('orders')" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white flex items-center gap-2">
-          <i data-lucide="list-ordered" class="w-4 h-4"></i> Controle de Entregas & Clientes
-        </button>
-        <button id="btnTabMenu" onclick="switchTab('menu')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-900 flex items-center gap-2">
-          <i data-lucide="utensils" class="w-4 h-4"></i> Pratos Cadastrados
-        </button>
-      </div>
+    <!-- SEÇÃO: PEDIDOS EM TEMPO REAL -->
+    <div class="bg-slate-950 border border-slate-800 rounded-3xl p-5 space-y-4">
+      <h2 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i> Pedidos Recebidos
+      </h2>
 
-      <div class="flex gap-2 w-full sm:w-auto">
-        <button onclick="openOrderModal()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i> + Novo Pedido / Entrega
-        </button>
-        <button onclick="openProductModal()" class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl flex items-center justify-center gap-2 border border-slate-700 transition">
-          <i data-lucide="plus" class="w-4 h-4"></i> Cadastrar Marmita
-        </button>
-      </div>
-    </div>
-
-    <section id="tabOrders" class="space-y-4">
-      <div class="bg-slate-950 border border-slate-800 rounded-3xl p-4 overflow-x-auto">
+      <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead>
-            <tr class="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider">
-              <th class="p-3">Cliente / Contato</th>
-              <th class="p-3">Endereço de Entrega</th>
-              <th class="p-3">Marmita / Item</th>
+            <tr class="border-b border-slate-800 text-slate-400">
+              <th class="p-3">Cliente</th>
+              <th class="p-3">Endereço</th>
+              <th class="p-3">Itens</th>
               <th class="p-3">Valor</th>
-              <th class="p-3">Forma de Pagamento</th>
+              <th class="p-3">Pagamento</th>
               <th class="p-3">Status</th>
-              <th class="p-3 text-center">Ações</th>
             </tr>
           </thead>
-          <tbody id="ordersTableBody" class="divide-y divide-slate-800/60 text-slate-200 font-medium">
-            </tbody>
+          <tbody id="ordersTableBody" class="divide-y divide-slate-800/60">
+            <tr><td colspan="6" class="p-6 text-center text-slate-500">Conectando...</td></tr>
+          </tbody>
         </table>
       </div>
-    </section>
-
-    <section id="tabMenu" class="hidden space-y-4">
-      <div id="menuGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-    </section>
+    </div>
 
   </main>
 
-  <div id="orderModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 id="orderModalTitle" class="font-bold text-white text-sm">Registrar Novo Pedido / Cliente</h3>
-        <button onclick="closeOrderModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <form onsubmit="saveOrder(event)" class="space-y-3 text-xs">
-        <input type="hidden" id="orderEditId">
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">Nome do Cliente *</label>
-            <input type="text" id="orderClientName" required placeholder="Ex: João da Silva" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-          </div>
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">WhatsApp do Cliente (com DDD)</label>
-            <input type="tel" id="orderClientPhone" placeholder="Ex: 5527999998888" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-semibold mb-1">Endereço Completo de Entrega *</label>
-          <input type="text" id="orderClientAddress" required placeholder="Rua, Número, Bairro, Ref." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">Marmita / Refeição *</label>
-            <input type="text" id="orderItemName" required placeholder="Ex: Marmita Executiva" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-          </div>
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">Valor a ser Cobrado (R$) *</label>
-            <input type="number" step="0.01" id="orderAmount" required placeholder="22.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-bold text-emerald-400">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">Forma de Pagamento *</label>
-            <select id="orderPaymentMethod" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-              <option value="PIX">PIX</option>
-              <option value="Dinheiro">Dinheiro</option>
-              <option value="Cartão de Débito">Cartão de Débito</option>
-              <option value="Cartão de Crédito">Cartão de Crédito</option>
-              <option value="A Pagar / Fiado">A Pagar / Fiado</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">Status da Entrega *</label>
-            <select id="orderStatus" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-              <option value="Pendente">Pendente</option>
-              <option value="Em Rota">Em Rota de Entrega</option>
-              <option value="Entregue">Entregue / Pago</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex gap-2 pt-3 border-t border-slate-800">
-          <button type="button" onclick="closeOrderModal()" class="flex-1 border border-slate-800 py-2.5 rounded-xl font-semibold text-slate-400">Cancelar</button>
-          <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition">Salvar Registro</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="productModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-4">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-white text-sm">Cadastrar Nova Marmita no Menu</h3>
-        <button onclick="closeProductModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <form onsubmit="saveProduct(event)" class="space-y-3 text-xs">
-        <div>
-          <label class="block text-slate-300 font-semibold mb-1">Nome do Prato *</label>
-          <input type="text" id="prodTitle" required placeholder="Ex: Marmita de Frango Grelhado" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-semibold mb-1">Preço Padrão (R$) *</label>
-          <input type="number" step="0.01" id="prodPrice" required placeholder="20.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-semibold mb-1">Descrição / Acompanhamentos</label>
-          <textarea id="prodDesc" rows="2" placeholder="Arroz, feijão, salada, farofa..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"></textarea>
-        </div>
-
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="closeProductModal()" class="flex-1 border border-slate-800 py-2.5 rounded-xl text-slate-400">Cancelar</button>
-          <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl transition">Salvar Marmita</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="configModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 space-y-4">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-white text-sm">Configuração da Chave PIX</h3>
-        <button onclick="closeConfigModal()" class="text-slate-500 hover:text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <form onsubmit="saveOwnerSettings(event)" class="space-y-3 text-xs">
-        <div>
-          <label class="block text-slate-300 font-semibold mb-1">Tipo da Chave PIX</label>
-          <select id="ownerPixType" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-            <option value="CNPJ">CNPJ</option>
-            <option value="CPF">CPF</option>
-            <option value="Telefone">Telefone</option>
-            <option value="E-mail">E-mail</option>
-            <option value="Chave Aleatória">Chave Aleatória</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-semibold mb-1">Sua Chave PIX *</label>
-          <input type="text" id="ownerPixKey" required placeholder="Insira sua chave PIX" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono">
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-semibold mb-1">Nome do Titular *</label>
-          <input type="text" id="ownerPixName" required placeholder="Ex: Marmitaria Deggust LTDA" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-        </div>
-
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="closeConfigModal()" class="flex-1 border border-slate-800 py-2.5 rounded-xl text-slate-400">Cancelar</button>
-          <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition">Salvar PIX</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <script>
-    // --- ESTADO LOCAL DE DADOS ---
-    let ordersList = JSON.parse(localStorage.getItem('deggust_orders_db')) || [];
-    let menuList = JSON.parse(localStorage.getItem('deggust_menu_db')) || [
-      { id: '1', title: 'Marmita Executiva de Carne', price: 22.00, desc: 'Arroz, feijão, bife acebolado, farofa e salada.' },
-      { id: '2', title: 'Marmita Frango Grelhado', price: 20.00, desc: 'Arroz, feijão, filé de frango e salada.' }
-    ];
-    let ownerConfig = JSON.parse(localStorage.getItem('deggust_owner_config')) || {
-      pixType: 'CNPJ',
-      pixKey: '00000000000000',
-      pixName: 'MARMITARIA DEGGUST'
-    };
-
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      renderOrdersTable();
-      renderMenu();
-      updateDashboardStats();
-      loadConfig();
+      
+      // ESCUTA PEDIDOS
+      db.collection("pedidos_franquia").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderOrders(orders);
+      });
+
+      // ESCUTA CARDÁPIO
+      db.collection("cardapio_franquia").onSnapshot((snapshot) => {
+        const menu = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderOwnerMenu(menu);
+      });
     });
 
-    // --- CONTROLE DE NAVEGAÇÃO E ABAS ---
-    function switchTab(tab) {
-      document.getElementById('tabOrders').classList.toggle('hidden', tab !== 'orders');
-      document.getElementById('tabMenu').classList.toggle('hidden', tab !== 'menu');
-      
-      document.getElementById('btnTabOrders').className = tab === 'orders' 
-        ? 'px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white flex items-center gap-2'
-        : 'px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-900 flex items-center gap-2';
+    // ADICIONAR PRATO AO CARDÁPIO
+    async function addMenuItem(e) {
+      e.preventDefault();
+      const title = document.getElementById('menuTitle').value.trim();
+      const desc = document.getElementById('menuDesc').value.trim();
+      const price = parseFloat(document.getElementById('menuPrice').value);
 
-      document.getElementById('btnTabMenu').className = tab === 'menu' 
-        ? 'px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white flex items-center gap-2'
-        : 'px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-900 flex items-center gap-2';
+      await db.collection("cardapio_franquia").add({ title, desc, price });
+      
+      document.getElementById('menuTitle').value = '';
+      document.getElementById('menuDesc').value = '';
+      document.getElementById('menuPrice').value = '';
     }
 
-    // --- GESTÃO DE PEDIDOS E CLIENTES ---
-    function renderOrdersTable() {
-      const tbody = document.getElementById('ordersTableBody');
-      if (ordersList.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center p-8 text-slate-500">
-              Nenhum cliente ou pedido registrado hoje. Clique em "+ Novo Pedido" para cadastrar.
-            </td>
-          </tr>`;
+    // EXCLUIR PRATO DO CARDÁPIO
+    async function deleteMenuItem(id) {
+      if(confirm("Deseja remover este prato do cardápio?")) {
+        await db.collection("cardapio_franquia").doc(id).delete();
+      }
+    }
+
+    function renderOwnerMenu(menu) {
+      const list = document.getElementById('ownerMenuList');
+      if (menu.length === 0) {
+        list.innerHTML = `<p class="text-xs text-slate-500 col-span-full">Nenhum prato cadastrado no cardápio.</p>`;
         return;
       }
 
-      tbody.innerHTML = ordersList.map((ord, idx) => `
-        <tr class="hover:bg-slate-900/50 transition">
-          <td class="p-3">
-            <div class="font-bold text-white">${ord.clientName}</div>
-            <div class="text-[10px] text-slate-400">${ord.clientPhone || 'Sem Whats'}</div>
-          </td>
-          <td class="p-3 text-slate-300 max-w-[180px] truncate" title="${ord.clientAddress}">${ord.clientAddress}</td>
+      list.innerHTML = menu.map(item => `
+        <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex justify-between items-center text-xs">
+          <div>
+            <p class="font-bold text-white">${item.title}</p>
+            <p class="text-[10px] text-emerald-400 font-bold">R$ ${parseFloat(item.price).toFixed(2)}</p>
+          </div>
+          <button onclick="deleteMenuItem('${item.id}')" class="text-rose-500 hover:text-rose-400 p-1">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function renderOrders(orders) {
+      const tbody = document.getElementById('ordersTableBody');
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Aguardando novos pedidos...</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = orders.map(ord => `
+        <tr class="hover:bg-slate-900/50">
+          <td class="p-3 font-bold text-white">${ord.clientName}<br><span class="text-[10px] text-slate-400 font-normal">${ord.clientPhone || ''}</span></td>
+          <td class="p-3 text-slate-300">${ord.clientAddress}</td>
           <td class="p-3 text-amber-400 font-semibold">${ord.itemName}</td>
-          <td class="p-3 font-bold text-emerald-400">R$ ${parseFloat(ord.amount).toFixed(2)}</td>
+          <td class="p-3 font-bold text-emerald-400">R$ ${parseFloat(ord.amount || 0).toFixed(2)}</td>
           <td class="p-3"><span class="bg-slate-900 border border-slate-800 px-2 py-1 rounded-lg text-[10px]">${ord.paymentMethod}</span></td>
           <td class="p-3">
-            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${
-              ord.status === 'Entregue' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-              ord.status === 'Em Rota' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-              'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-            }">${ord.status}</span>
-          </td>
-          <td class="p-3 text-center">
-            <div class="flex items-center justify-center gap-1">
-              ${ord.clientPhone ? `<button onclick="sendWhatsAppBilling('${ord.id}')" class="p-1.5 bg-emerald-600/20 text-emerald-400 rounded-lg hover:bg-emerald-600 hover:text-white" title="Enviar Cobrança WhatsApp"><i data-lucide="message-circle" class="w-4 h-4"></i></button>` : ''}
-              <button onclick="editOrder('${ord.id}')" class="p-1.5 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700" title="Editar"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-              <button onclick="deleteOrder('${ord.id}')" class="p-1.5 bg-rose-500/10 text-rose-400 rounded-lg hover:bg-rose-600 hover:text-white" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-            </div>
+            <select onchange="updateStatus('${ord.id}', this.value)" class="bg-slate-900 border border-slate-800 text-[10px] rounded-lg p-1 font-bold ${
+              ord.status === 'Entregue' ? 'text-emerald-400' : 'text-amber-400'
+            }">
+              <option value="Pendente" ${ord.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+              <option value="Em Rota" ${ord.status === 'Em Rota' ? 'selected' : ''}>Em Rota</option>
+              <option value="Entregue" ${ord.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+            </select>
           </td>
         </tr>
       `).join('');
       lucide.createIcons();
     }
 
-    function saveOrder(e) {
-      e.preventDefault();
-      const id = document.getElementById('orderEditId').value;
-      const orderData = {
-        id: id || String(Date.now()),
-        clientName: document.getElementById('orderClientName').value.trim(),
-        clientPhone: document.getElementById('orderClientPhone').value.trim(),
-        clientAddress: document.getElementById('orderClientAddress').value.trim(),
-        itemName: document.getElementById('orderItemName').value.trim(),
-        amount: parseFloat(document.getElementById('orderAmount').value),
-        paymentMethod: document.getElementById('orderPaymentMethod').value,
-        status: document.getElementById('orderStatus').value
-      };
-
-      if (id) {
-        const idx = ordersList.findIndex(o => o.id === id);
-        if (idx !== -1) ordersList[idx] = orderData;
-      } else {
-        ordersList.unshift(orderData);
-      }
-
-      localStorage.setItem('deggust_orders_db', JSON.stringify(ordersList));
-      renderOrdersTable();
-      updateDashboardStats();
-      closeOrderModal();
+    async function updateStatus(id, status) {
+      await db.collection("pedidos_franquia").doc(id).update({ status });
     }
-
-    function editOrder(id) {
-      const ord = ordersList.find(o => o.id === id);
-      if (!ord) return;
-      document.getElementById('orderEditId').value = ord.id;
-      document.getElementById('orderClientName').value = ord.clientName;
-      document.getElementById('orderClientPhone').value = ord.clientPhone || '';
-      document.getElementById('orderClientAddress').value = ord.clientAddress;
-      document.getElementById('orderItemName').value = ord.itemName;
-      document.getElementById('orderAmount').value = ord.amount;
-      document.getElementById('orderPaymentMethod').value = ord.paymentMethod;
-      document.getElementById('orderStatus').value = ord.status;
-      openOrderModal();
-    }
-
-    function deleteOrder(id) {
-      if (confirm("Deseja excluir este registro de cliente/pedido?")) {
-        ordersList = ordersList.filter(o => o.id !== id);
-        localStorage.setItem('deggust_orders_db', JSON.stringify(ordersList));
-        renderOrdersTable();
-        updateDashboardStats();
-      }
-    }
-
-    function sendWhatsAppBilling(id) {
-      const ord = ordersList.find(o => o.id === id);
-      if (!ord || !ord.clientPhone) return alert("Número de WhatsApp não informado para este cliente.");
-
-      let msg = `🍱 *MARMITARIA DEGGUST*\n\n`;
-      msg += `Olá, *${ord.clientName}*!\n`;
-      msg += `Acompanhamento da sua refeição:\n\n`;
-      msg += `• *Item:* ${ord.itemName}\n`;
-      msg += `• *Endereço:* ${ord.clientAddress}\n`;
-      msg += `• *Valor Total:* R$ ${parseFloat(ord.amount).toFixed(2)}\n`;
-      msg += `• *Forma de Pagamento:* ${ord.paymentMethod}\n\n`;
-
-      if (ord.paymentMethod === 'PIX') {
-        msg += `📌 *Dados para Pagamento via PIX:*\n`;
-        msg += `• Chave (${ownerConfig.pixType}): *${ownerConfig.pixKey}*\n`;
-        msg += `• Titular: *${ownerConfig.pixName}*\n\n`;
-        msg += `Por favor, nos envie o comprovante por aqui assim que efetuar! Obrigado.`;
-      }
-
-      const cleanPhone = ord.clientPhone.replace(/\D/g, '');
-      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    function updateDashboardStats() {
-      const totalAmount = ordersList.reduce((acc, o) => acc + (parseFloat(o.amount) || 0), 0);
-      const pendingCount = ordersList.filter(o => o.status !== 'Entregue').length;
-
-      document.getElementById('statTotalAmount').innerText = `R$ ${totalAmount.toFixed(2)}`;
-      document.getElementById('statTotalOrders').innerText = ordersList.length;
-      document.getElementById('statPendingOrders').innerText = pendingCount;
-    }
-
-    // --- GESTÃO DO CARDÁPIO ---
-    function renderMenu() {
-      const grid = document.getElementById('menuGrid');
-      grid.innerHTML = menuList.map(item => `
-        <div class="bg-slate-950 p-4 rounded-3xl border border-slate-800 flex justify-between items-center">
-          <div>
-            <h4 class="font-bold text-sm text-white">${item.title}</h4>
-            <p class="text-[11px] text-slate-400">${item.desc}</p>
-            <div class="font-black text-emerald-400 text-sm mt-1">R$ ${parseFloat(item.price).toFixed(2)}</div>
-          </div>
-          <button onclick="deleteProduct('${item.id}')" class="p-2 bg-rose-500/10 text-rose-400 rounded-xl hover:bg-rose-600 hover:text-white"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-        </div>
-      `).join('');
-      lucide.createIcons();
-    }
-
-    function saveProduct(e) {
-      e.preventDefault();
-      menuList.push({
-        id: String(Date.now()),
-        title: document.getElementById('prodTitle').value.trim(),
-        price: parseFloat(document.getElementById('prodPrice').value),
-        desc: document.getElementById('prodDesc').value.trim()
-      });
-      localStorage.setItem('deggust_menu_db', JSON.stringify(menuList));
-      renderMenu();
-      closeProductModal();
-    }
-
-    function deleteProduct(id) {
-      if (confirm("Excluir esta marmita do cardápio?")) {
-        menuList = menuList.filter(m => m.id !== id);
-        localStorage.setItem('deggust_menu_db', JSON.stringify(menuList));
-        renderMenu();
-      }
-    }
-
-    // --- CONFIGURAÇÃO DO PIX ---
-    function loadConfig() {
-      document.getElementById('ownerPixType').value = ownerConfig.pixType || 'CNPJ';
-      document.getElementById('ownerPixKey').value = ownerConfig.pixKey || '';
-      document.getElementById('ownerPixName').value = ownerConfig.pixName || '';
-    }
-
-    function saveOwnerSettings(e) {
-      e.preventDefault();
-      ownerConfig = {
-        pixType: document.getElementById('ownerPixType').value,
-        pixKey: document.getElementById('ownerPixKey').value.trim(),
-        pixName: document.getElementById('ownerPixName').value.trim()
-      };
-      localStorage.setItem('deggust_owner_config', JSON.stringify(ownerConfig));
-      closeConfigModal();
-      alert("Sua chave PIX foi configurada com sucesso!");
-    }
-
-    // --- MODAIS ---
-    function openOrderModal() {
-      document.getElementById('orderEditId').value = '';
-      document.getElementById('orderModal').classList.remove('hidden');
-    }
-    function closeOrderModal() { document.getElementById('orderModal').classList.add('hidden'); }
-    
-    function openProductModal() { document.getElementById('productModal').classList.remove('hidden'); }
-    function closeProductModal() { document.getElementById('productModal').classList.add('hidden'); }
-
-    function openConfigModal() { document.getElementById('configModal').classList.remove('hidden'); }
-    function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
   </script>
 </body>
 </html>
